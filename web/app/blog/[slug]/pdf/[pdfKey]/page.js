@@ -14,7 +14,7 @@ const SITE_URL = 'https://www.venugopal.net';
 export const revalidate = 10;
 
 function textExcerpt(text = '', maxLength = 160) {
-    const normalized = text.replace(/\s+/g, ' ').trim();
+    const normalized = String(text || '').replace(/\s+/g, ' ').trim();
     if (normalized.length <= maxLength) {
         return normalized;
     }
