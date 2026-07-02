@@ -7,6 +7,7 @@ export default {
             name: 'title',
             title: 'Title',
             type: 'string',
+            validation: (Rule) => Rule.required(),
         },
         {
             name: 'subtitle',
@@ -21,6 +22,7 @@ export default {
                 source: 'title',
                 maxLength: 96,
             },
+            validation: (Rule) => Rule.required(),
         },
         {
             name: 'author',
@@ -38,6 +40,8 @@ export default {
             name: 'publishedAt',
             title: 'Published at',
             type: 'datetime',
+            initialValue: () => new Date().toISOString(),
+            validation: (Rule) => Rule.required(),
         },
         {
             name: 'body',
@@ -46,17 +50,32 @@ export default {
         },
     ],
 
+    orderings: [
+        {
+            title: 'Published date, newest first',
+            name: 'publishedAtDesc',
+            by: [{ field: 'publishedAt', direction: 'desc' }],
+        },
+    ],
+
     preview: {
         select: {
             title: 'title',
-            author: 'author.name',
-            media: 'mainImage',
+            subtitle: 'subtitle',
+            date: 'publishedAt',
         },
-        prepare(selection) {
-            const { author } = selection;
-            return Object.assign({}, selection, {
-                subtitle: author && `by ${author}`,
-            });
+        prepare({ title, subtitle, date }) {
+            const formattedDate = date
+                ? new Date(date).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                  })
+                : 'No publish date';
+            return {
+                title,
+                subtitle: subtitle ? `${formattedDate} — ${subtitle}` : formattedDate,
+            };
         },
     },
 };

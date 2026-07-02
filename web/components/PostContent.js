@@ -3,6 +3,7 @@
 import styles from '../styles/Post.module.css'; // Corrected path
 import client from '../client'; // Corrected path
 import { createImageUrlBuilder } from '@sanity/image-url';
+import { getImageDimensions } from '@sanity/asset-utils';
 import { PortableText as ReactPortableText } from '@portabletext/react'; // Rename to avoid conflict
 import 'katex/dist/katex.min.css';
 import Latex from './Latex'; // Needs to be client-side
@@ -11,6 +12,7 @@ import Image from 'next/image';
 import Header from './Header'; // Corrected path
 import FormattedDate from './FormattedDate'; // Corrected path
 import PDFViewer from './PDFViewer/PDFViewer'; // Corrected path
+import CodeBlock from './CodeBlock';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons';
 
@@ -19,26 +21,61 @@ function urlFor(source) {
     return createImageUrlBuilder(client).image(source);
 }
 
+// Stable anchor ids for headings, derived from their text
+function headingId(value) {
+    const text = value.children?.map((child) => child.text ?? '').join('') ?? '';
+    return text
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-');
+}
+
+const heading = (Tag) => {
+    const Heading = ({ children, value }) => <Tag id={headingId(value)}>{children}</Tag>;
+    Heading.displayName = `Heading(${Tag})`;
+    return Heading;
+};
+
 // All custom ptComponents
 const ptComponents = {
+    block: {
+        h1: heading('h1'),
+        h2: heading('h2'),
+        h3: heading('h3'),
+        h4: heading('h4'),
+    },
     types: {
         image: ({ value }) => {
             if (!value?.asset?._ref) {
                 return null;
             }
-            // Use Next.js Image component for optimization
+            // Real dimensions are encoded in the asset ref, so Next.js
+            // can reserve the correct aspect ratio before the image loads
+            let width, height;
+            try {
+                ({ width, height } = getImageDimensions(value));
+            } catch {
+                return null; // malformed asset ref; skip rather than crash the post
+            }
             return (
-                <Image
-                    alt={value.alt || ' '}
-                    loading='lazy'
-                    src={urlFor(value).url()} // Get the full URL
-                    width={320} // Provide appropriate default or fetched dimensions
-                    height={240}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    style={{ maxWidth: '100%', height: 'auto' }} // Basic responsive styling
-                />
+                <figure className={styles.figure}>
+                    <Image
+                        alt={value.alt || value.caption || ''}
+                        loading='lazy'
+                        src={urlFor(value).width(1200).fit('max').auto('format').url()}
+                        width={width}
+                        height={height}
+                        sizes="(max-width: 767px) 75vw, 50vw"
+                        style={{ width: '100%', height: 'auto' }}
+                    />
+                    {value.caption && (
+                        <figcaption className={styles.caption}>{value.caption}</figcaption>
+                    )}
+                </figure>
             );
         },
+        code: ({ value }) => <CodeBlock value={value} />,
         // Latex component needs to run client-side
         latex: ({ value, isInline }) => {
             return <Latex displayMode={!isInline}>{value.body}</Latex>;

@@ -1,0 +1,37 @@
+.container {
+    margin: 0 0 1.5em;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    background-color: #2c2c2c;
+    border: 1px solid #3a3a3a;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    padding: 6px 12px;
+}
+
+.label {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #b0b0b0;
+}
+
+.copy {
+    background: none;
+    border: 1px solid #3a3a3a;
+    border-radius: 3px;
+    color: #b0b0b0;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.copy:hover {
+    color: #e0e0e0;
+    border-color: #808080;
+}

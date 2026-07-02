@@ -36,7 +36,10 @@ export default {
                 { title: 'H4', value: 'h4' },
                 { title: 'Quote', value: 'blockquote' },
             ],
-            lists: [{ title: 'Bullet', value: 'bullet' }],
+            lists: [
+                { title: 'Bullet', value: 'bullet' },
+                { title: 'Numbered', value: 'number' },
+            ],
             // Marks let you mark up inline text in the block editor.
             marks: {
                 // Decorators usually describe a single property – e.g. a typographic
@@ -70,6 +73,27 @@ export default {
         {
             type: 'image',
             options: { hotspot: true },
+            fields: [
+                {
+                    name: 'alt',
+                    type: 'string',
+                    title: 'Alternative text',
+                    description: 'Describes the image for screen readers and search engines.',
+                },
+                {
+                    name: 'caption',
+                    type: 'string',
+                    title: 'Caption',
+                    description: 'Optional caption displayed below the image.',
+                },
+            ],
+        },
+        {
+            type: 'code',
+            title: 'Code Block',
+            options: {
+                withFilename: true,
+            },
         },
         { type: 'file', title: 'PDF' },
         { type: 'latex', icon: mathIcon, title: 'Math block' },
