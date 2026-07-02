@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 import Navbar from '../components/Navbar';
 import '@fortawesome/fontawesome-svg-core/styles.css';
-import { Raleway, Roboto, Literata } from 'next/font/google';
+import { Raleway, Literata } from 'next/font/google';
 
 // Configure the fonts
 const raleway = Raleway({
@@ -9,14 +9,6 @@ const raleway = Raleway({
   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
   style: ['normal', 'italic'],
   variable: '--font-raleway',
-  display: 'swap',
-});
-
-const roboto = Roboto({
-  subsets: ['latin'],
-  weight: ['100', '300', '400', '500', '700'],
-  style: ['normal', 'italic'],
-  variable: '--font-roboto',
   display: 'swap',
 });
 
@@ -101,7 +93,7 @@ export default function RootLayout({ children }) {
   };
 
   return (
-    <html lang="en" className={`${raleway.variable} ${roboto.variable} ${literata.variable}`}>
+    <html lang="en" className={`${raleway.variable} ${literata.variable}`}>
       <head>
         <script
           type="application/ld+json"
