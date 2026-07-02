@@ -103,11 +103,6 @@ export default function RootLayout({ children }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
-        <link
-          href='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css'
-          rel='stylesheet'
-          precedence="default"
-        />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"></meta>
       </head>
       <body>

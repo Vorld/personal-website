@@ -8,7 +8,7 @@ import { faGithub, faLinkedin, faTelegram } from '@fortawesome/free-brands-svg-i
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import groq from 'groq';
 import client from '../client';
-import imageUrlBuilder from '@sanity/image-url';
+import { createImageUrlBuilder } from '@sanity/image-url';
 
 import styles from '../styles/Home.module.css';
 
@@ -21,7 +21,7 @@ export const metadata = {
 };
 
 function urlFor(source) {
-    return imageUrlBuilder(client).image(source);
+    return createImageUrlBuilder(client).image(source);
 }
 
 // TODO: Random dynamic elements like bits that fly off near the cursor.
