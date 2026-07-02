@@ -38,12 +38,7 @@
   letter-spacing: 0.01em;
 
   height: 100lvh;
-  padding: 0% 25% 0% 25%;
-}
-
-/* Bio prose reads in the same serif voice as blog posts */
-.para p {
-  font-family: var(--font-literata), Georgia, serif;
+  padding: 0% 25% 0% 25%; 
 }
 
 .section1 {
