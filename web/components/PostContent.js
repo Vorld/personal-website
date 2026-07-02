@@ -2,10 +2,10 @@
 
 import styles from '../styles/Post.module.css'; // Corrected path
 import client from '../client'; // Corrected path
-import imageUrlBuilder from '@sanity/image-url';
+import { createImageUrlBuilder } from '@sanity/image-url';
 import { PortableText as ReactPortableText } from '@portabletext/react'; // Rename to avoid conflict
 import 'katex/dist/katex.min.css';
-import Latex from 'react-latex-next'; // Needs to be client-side
+import Latex from './Latex'; // Needs to be client-side
 import Link from 'next/link';
 import Image from 'next/image';
 import Header from './Header'; // Corrected path
@@ -16,7 +16,7 @@ import { faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons';
 
 // Image build for portable text
 function urlFor(source) {
-    return imageUrlBuilder(client).image(source);
+    return createImageUrlBuilder(client).image(source);
 }
 
 // All custom ptComponents
@@ -41,11 +41,7 @@ const ptComponents = {
         },
         // Latex component needs to run client-side
         latex: ({ value, isInline }) => {
-            return isInline ? (
-                <Latex>{`$ ${value.body} $`}</Latex>
-            ) : (
-                <Latex>{`$$ ${value.body} $$`}</Latex>
-            );
+            return <Latex displayMode={!isInline}>{value.body}</Latex>;
         },
         poetry: ({ value }) => {
             // Simple div, can remain server-side if PortableText is structured carefully

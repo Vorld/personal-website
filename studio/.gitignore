@@ -34,3 +34,7 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# sanity build output and runtime cache
+/dist/
+/.sanity/
