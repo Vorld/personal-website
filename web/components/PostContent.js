@@ -106,7 +106,7 @@ const createPtComponents = (postSlug) => ({
                     <div className={styles.pdfActions}>
                         {pdfPageHref && (
                             <Link href={pdfPageHref} className={styles.pdfAction}>
-                                Open text version
+                                Open searchable PDF page
                             </Link>
                         )}
                         <a href={url} className={styles.pdfAction}>

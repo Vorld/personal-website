@@ -7,6 +7,7 @@ import FormattedDate from '../../../../../components/FormattedDate';
 import Header from '../../../../../components/Header';
 import PDFViewer from '../../../../../components/PDFViewer/PDFViewer';
 import { pdfPagePath, pdfUrlFromAssetRef } from '../../../../../pdf';
+import { extractPdfText } from '../../../../../pdfText';
 import styles from '../../../../../styles/Post.module.css';
 
 const SITE_URL = 'https://www.venugopal.net';
@@ -45,6 +46,27 @@ async function getPdfPage(slug, pdfKey) {
     return client.fetch(query, { slug, pdfKey });
 }
 
+async function getResolvedPdfPage(slug, pdfKey) {
+    const post = await getPdfPage(slug, pdfKey);
+    const pdfUrl = pdfUrlFromAssetRef(post?.pdf?.assetRef);
+
+    if (!post?.pdf || !pdfUrl) {
+        return post;
+    }
+
+    const storedTranscript = String(post.pdf.transcript || '').trim();
+    const transcript = storedTranscript || await extractPdfText(pdfUrl);
+
+    return {
+        ...post,
+        pdf: {
+            ...post.pdf,
+            pdfUrl,
+            transcript,
+        },
+    };
+}
+
 export async function generateStaticParams() {
     const posts = await client.fetch(
         groq`*[_type == "post" && defined(slug.current)]{
@@ -63,9 +85,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }) {
     const { slug, pdfKey } = await params;
-    const post = await getPdfPage(slug, pdfKey);
+    const post = await getResolvedPdfPage(slug, pdfKey);
 
-    if (!post?.pdf?.assetRef) {
+    if (!post?.pdf?.pdfUrl) {
         return {
             title: 'PDF Not Found',
             description: 'The PDF document you are looking for could not be found.',
@@ -106,17 +128,13 @@ export async function generateMetadata({ params }) {
 
 const PdfPage = async ({ params }) => {
     const { slug, pdfKey } = await params;
-    const post = await getPdfPage(slug, pdfKey);
+    const post = await getResolvedPdfPage(slug, pdfKey);
 
-    if (!post?.pdf?.assetRef) {
+    if (!post?.pdf?.pdfUrl) {
         notFound();
     }
 
-    const pdfUrl = pdfUrlFromAssetRef(post.pdf.assetRef);
-    if (!pdfUrl) {
-        notFound();
-    }
-
+    const pdfUrl = post.pdf.pdfUrl;
     const pdfTitle = getPdfTitle(post, post.pdf);
     const description =
         post.pdf.description ||
@@ -178,8 +196,6 @@ const PdfPage = async ({ params }) => {
                     </Link>
                 </div>
 
-                <PDFViewer url={pdfUrl} id={`pdf-${pdfKey}`} />
-
                 {post.pdf.transcript && (
                     <section className={styles.pdfTranscript}>
                         <h2>Text version</h2>
@@ -188,6 +204,11 @@ const PdfPage = async ({ params }) => {
                         </div>
                     </section>
                 )}
+
+                <section className={styles.pdfOriginal}>
+                    <h2>Original PDF</h2>
+                    <PDFViewer url={pdfUrl} id={`pdf-${pdfKey}`} />
+                </section>
             </article>
         </>
     );
