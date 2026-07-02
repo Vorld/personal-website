@@ -38,6 +38,11 @@ export const metadata = {
   icons: {
     icon: '/favicon.ico',
   },
+  alternates: {
+    types: {
+      'application/rss+xml': '/feed.xml',
+    },
+  },
   openGraph: {
     title: 'Kulkarni Venugopal',
     description: "Kulkarni Venugopal's Personal Website and Blog",
