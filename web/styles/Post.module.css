@@ -17,13 +17,16 @@
 .date {
   font-weight: 300;
   font-size: 1rem;
-  color: #808080;
+  color: #9a9a9a;
 }
 
 .container {
   display: flex;
   flex-direction: column;
   width: 50%;
+  /* Cap the measure at ~70 characters; percentage widths alone give
+     130+ character lines on large screens */
+  max-width: 40rem;
   margin: auto;
 
   border-bottom: 2px solid #3a3a3a;
@@ -81,6 +84,7 @@
   display: flex;
   flex-direction: row;
   width: 50%;
+  max-width: 40rem; /* stay aligned with .container */
   justify-content: space-between;
   margin: auto;
 }
@@ -135,20 +139,19 @@
   /* Readability improvements */
   margin-top: 2vh;
 
-  line-height: 1.5;
-  letter-spacing: 0.01em;
+  font-size: 1.125rem;
+  line-height: 1.65;
 }
 
 .body p {
-  text-align: justify;
   margin-bottom: 1.5em;
   margin-top: 0;
 }
 
 .body h1 {
   position: relative;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  margin-top: 2em;
+  margin-bottom: 0.75em;
   font-weight: bold;
   line-height: 1.4;
   cursor: text;
@@ -163,14 +166,18 @@
 .body h2 {
   font-size: 1.75em;
   line-height: 1.225;
+  /* More space above than below attaches the heading to its section */
+  margin-top: 1.75em;
+  margin-bottom: 0.75em;
+  padding-bottom: 0.25em;
   border-bottom: 1px solid #3a3a3a;
 }
 
 .body h3 {
   font-size: 1.5em;
   line-height: 1.3;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
   font-weight: 600;
   color: #f0f0f0;
 }
@@ -308,12 +315,7 @@
   }
 
   .body {
-    font-size: 16px;
+    font-size: 1.0625rem;
     max-width: 100%;
-    letter-spacing: 0.01em;
-  }
-
-  .body p {
-    text-align: left; /* Remove justification on mobile */
   }
 }
