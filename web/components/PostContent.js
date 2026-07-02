@@ -15,6 +15,7 @@ import Header from './Header'; // Corrected path
 import FormattedDate from './FormattedDate'; // Corrected path
 import PDFViewer from './PDFViewer/PDFViewer'; // Corrected path
 import CodeBlock from './CodeBlock';
+import { pdfPagePath, pdfUrlFromAssetRef } from '../pdf';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons';
 
@@ -40,7 +41,7 @@ const heading = (Tag) => {
 };
 
 // All custom ptComponents
-const ptComponents = {
+const createPtComponents = (postSlug) => ({
     block: {
         h1: heading('h1'),
         h2: heading('h2'),
@@ -90,40 +91,34 @@ const ptComponents = {
         // PDFViewer is a client component
         file: ({ value }) => {
             if (!value?.asset?._ref) return null;
-            const { _ref } = value.asset;
-            const [_file, id, extension] = _ref.split('-');
-            const url =
-                'https://cdn.sanity.io/files/qjy3hvt5/production/' +
-                id +
-                '.' +
-                extension;
+            const url = pdfUrlFromAssetRef(value.asset._ref);
+            if (!url) return null;
+
+            const pdfTitle = value.title || value.originalFilename || 'PDF document';
+            const pdfPageHref = pdfPagePath(postSlug, value._key);
+            const pdfViewerId = value._key
+                ? `pdf-${value._key}`
+                : value.asset._ref.replace(/[^a-zA-Z0-9_-]/g, '-');
 
             return (
-                <>
-                    {/* PDF URL link for SEO - hidden from view but in DOM */}
-                    <a
-                        href={url}
-                        aria-label="Download PDF document"
-                        style={{
-                            position: 'absolute',
-                            width: '1px',
-                            height: '1px',
-                            padding: 0,
-                            margin: '-1px',
-                            overflow: 'hidden',
-                            clip: 'rect(0,0,0,0)',
-                            whiteSpace: 'nowrap',
-                            border: 0
-                        }}
-                    >
-                        View PDF Document
-                    </a>
-                    <PDFViewer url={url} id={id} />
-                </>
+                <figure className={styles.pdfBlock}>
+                    <figcaption className={styles.pdfCaption}>{pdfTitle}</figcaption>
+                    <div className={styles.pdfActions}>
+                        {pdfPageHref && (
+                            <Link href={pdfPageHref} className={styles.pdfAction}>
+                                Open text version
+                            </Link>
+                        )}
+                        <a href={url} className={styles.pdfAction}>
+                            Download PDF
+                        </a>
+                    </div>
+                    <PDFViewer url={url} id={pdfViewerId} />
+                </figure>
             );
         },
     },
-};
+});
 
 
 const PostContent = ({ post }) => {
@@ -134,6 +129,7 @@ const PostContent = ({ post }) => {
     const {
         title = 'Missing title',
         authorName = 'Missing author name',
+        slug,
         categories,
         date,
         body = [],
@@ -157,7 +153,7 @@ const PostContent = ({ post }) => {
                 </span>
 
                 <div className={styles.body}>
-                    <ReactPortableText value={body} components={ptComponents} />
+                    <ReactPortableText value={body} components={createPtComponents(slug)} />
                 </div>
 
                 <span className={styles.categories}>

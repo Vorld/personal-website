@@ -25,12 +25,19 @@ export const revalidate = 10;
 async function getPost(slug) {
     const query = groq`*[_type == "post" && slug.current == $slug][0]{
       title,
+      "slug": slug.current,
       "authorName": author->name,
       "authorSlug": author->slug.current, // Assuming author has a slug for a potential author page
       "categories": categories[]->{title, "slug": slug.current},
       "date": publishedAt,
       _updatedAt,
-      body,
+      body[]{
+        ...,
+        _type == "file" => {
+          ...,
+          "originalFilename": asset->originalFilename
+        }
+      },
       "metaDescription": pt::text(body), // Or a dedicated metaDescription field
       'previousPost': *[_type == 'post' && publishedAt < ^.publishedAt] | order(publishedAt desc)[0].slug.current,
       'nextPost': *[_type == 'post' && publishedAt > ^.publishedAt] | order(publishedAt asc)[0].slug.current

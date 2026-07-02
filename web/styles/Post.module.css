@@ -254,6 +254,66 @@
   text-decoration-color: #e0e0e0;
 }
 
+.pdfBlock {
+  margin: 2em 0;
+}
+
+.pdfCaption {
+  margin-bottom: 0.5rem;
+  font-family: var(--font-raleway), Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.pdfActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  font-family: var(--font-raleway), Arial, sans-serif;
+  font-size: 0.95rem;
+}
+
+.pdfAction {
+  color: #e0e0e0;
+  text-decoration: underline;
+  text-decoration-color: #808080;
+  text-underline-offset: 2px;
+}
+
+.pdfAction:hover {
+  text-decoration-color: #e0e0e0;
+}
+
+.pdfDescription {
+  margin-top: 1.5rem;
+  font-family: var(--font-literata), Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: #d8d8d8;
+}
+
+.pdfTranscript {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #3a3a3a;
+  font-family: var(--font-literata), Georgia, serif;
+}
+
+.pdfTranscript h2 {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  color: #f0f0f0;
+}
+
+.pdfTranscriptText {
+  white-space: pre-wrap;
+  font-size: 1.1rem;
+  line-height: 1.65;
+  color: #e0e0e0;
+}
+
 .categories a {
   font-weight: 300;
   font-size: 1rem;
