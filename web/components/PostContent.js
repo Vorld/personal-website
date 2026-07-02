@@ -21,6 +21,38 @@ function urlFor(source) {
     return createImageUrlBuilder(client).image(source);
 }
 
+// Typographic finishing for prose: typewriter marks read as typos in a
+// serif face. Source content in Sanity stays untouched.
+function smarten(text) {
+    return text
+        .replace(/(\w)'(\w)/g, '$1’$2') // contractions: it's -> it’s
+        .replace(/'(\d)/g, '’$1') // decades: '90s
+        .replace(/(^|[\s([])'(\S)/g, '$1‘$2') // opening single quote
+        .replace(/'/g, '’') // remaining singles close: years', 'twas
+        .replace(/(^|[\s([])"(\S)/g, '$1“$2') // opening double quote
+        .replace(/"/g, '”') // remaining doubles close
+        .replace(/(\d) - (\d)/g, '$1–$2') // numeric range -> en dash
+        .replace(/ - /g, ' — '); // spaced hyphen -> em dash
+}
+
+function smartenBody(body) {
+    return body.map((block) => {
+        if (block._type !== 'block' || !Array.isArray(block.children)) {
+            return block;
+        }
+        return {
+            ...block,
+            children: block.children.map((child) =>
+                child._type === 'span' &&
+                typeof child.text === 'string' &&
+                !child.marks?.includes('code')
+                    ? { ...child, text: smarten(child.text) }
+                    : child
+            ),
+        };
+    });
+}
+
 // Stable anchor ids for headings, derived from their text
 function headingId(value) {
     const text = value.children?.map((child) => child.text ?? '').join('') ?? '';
@@ -155,7 +187,7 @@ const PostContent = ({ post }) => {
                 </span>
 
                 <div className={styles.body}>
-                    <ReactPortableText value={body} components={ptComponents} />
+                    <ReactPortableText value={smartenBody(body)} components={ptComponents} />
                 </div>
 
                 <span className={styles.categories}>
