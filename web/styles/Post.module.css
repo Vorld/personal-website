@@ -144,6 +144,15 @@
   line-height: 1.6;
 }
 
+/* Article headings share the body serif (globals set h1-h3 to Raleway,
+   which is reserved for site chrome); the post title stays Raleway */
+.body h1,
+.body h2,
+.body h3,
+.body h4 {
+  font-family: var(--font-literata), Georgia, serif;
+}
+
 .body p {
   margin-bottom: 1.5em;
   margin-top: 0;
@@ -184,9 +193,6 @@
 }
 
 .body h4 {
-  /* h1-h3 are Raleway via globals; keep h4 sans as well now that the
-     body copy is serif */
-  font-family: var(--font-raleway), sans-serif;
   font-size: 1.25em;
   line-height: 1.4;
   margin-top: 1.25rem;
