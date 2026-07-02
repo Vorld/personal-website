@@ -1,4 +1,5 @@
 import client from '../../client'; 
+import { pdfPagePath } from '../../pdf';
 
 
 const SITE_URL = 'https://www.venugopal.net';
@@ -19,9 +20,11 @@ async function getAllCategorySlugs() {
 }
 
 async function getAllPdfAssets() {
-  // Fetches all PDF file assets from posts
+  // Fetches all PDF blocks from posts so their first-party wrapper pages
+  // can be listed instead of raw Sanity CDN asset URLs.
   const query = `*[_type == "post"]{
-    "pdfs": body[_type == "file"]{
+    "pdfs": body[_type == "file" && defined(asset._ref)]{
+      "pdfKey": _key,
       "ref": asset._ref,
       "postSlug": ^.slug.current,
       "postUpdatedAt": ^._updatedAt
@@ -31,7 +34,7 @@ async function getAllPdfAssets() {
 
   // Flatten and filter to get all PDFs
   const pdfs = posts.flatMap(post => post.pdfs || [])
-                    .filter(pdf => pdf.ref);
+                    .filter(pdf => pdf.ref && pdf.pdfKey && pdf.postSlug);
 
   return pdfs;
 }
@@ -94,11 +97,10 @@ export async function GET() {
         .join('')}
       ${allPdfs
         .map((pdf) => {
-          const [_file, id, extension] = pdf.ref.split('-');
-          const pdfUrl = `https://cdn.sanity.io/files/qjy3hvt5/production/${id}.${extension}`;
+          const pdfPageUrl = `${SITE_URL}${pdfPagePath(pdf.postSlug, pdf.pdfKey)}`;
           return `
             <url>
-              <loc>${pdfUrl}</loc>
+              <loc>${pdfPageUrl}</loc>
               <lastmod>${new Date(pdf.postUpdatedAt).toISOString().split('T')[0]}</lastmod>
               <priority>0.6</priority>
             </url>
