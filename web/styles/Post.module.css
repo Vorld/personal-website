@@ -177,7 +177,7 @@
   font-size: 1.75em;
   line-height: 1.225;
   /* More space above than below attaches the heading to its section */
-  margin-top: 1.75em;
+  margin-top: 2.5em;
   margin-bottom: 0.75em;
   padding-bottom: 0.25em;
   border-bottom: 1px solid #3a3a3a;
@@ -186,7 +186,7 @@
 .body h3 {
   font-size: 1.5em;
   line-height: 1.3;
-  margin-top: 1.5em;
+  margin-top: 2em;
   margin-bottom: 0.5em;
   font-weight: 600;
   color: #f0f0f0;
@@ -195,8 +195,9 @@
 .body h4 {
   font-size: 1.25em;
   line-height: 1.4;
-  margin-top: 1.25rem;
-  margin-bottom: 0.5rem;
+  /* em, not rem: heading margins must scale with the heading itself */
+  margin-top: 1.75em;
+  margin-bottom: 0.5em;
   font-weight: 600;
   color: #e8e8e8;
 }
@@ -204,8 +205,8 @@
 .body h5 {
   font-size: 1.1em;
   line-height: 1.5;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
+  margin-top: 1.75em;
+  margin-bottom: 0.5em;
   font-weight: 600;
   color: #e0e0e0;
   text-transform: uppercase;
@@ -215,8 +216,8 @@
 .body h6 {
   font-size: 1em;
   line-height: 1.6;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
+  margin-top: 1.75em;
+  margin-bottom: 0.5em;
   font-weight: 700;
   color: #e0e0e0;
   font-style: italic;
