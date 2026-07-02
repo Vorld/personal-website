@@ -24,9 +24,9 @@
   display: flex;
   flex-direction: column;
   width: 50%;
-  /* Cap the measure at ~70 characters; percentage widths alone give
-     130+ character lines on large screens */
-  max-width: 40rem;
+  /* Medium/Substack scale: ~680px column at 20px type ≈ 65 chars/line.
+     Percentage widths alone give 130+ character lines on large screens */
+  max-width: 42.5rem;
   margin: auto;
 
   border-bottom: 2px solid #3a3a3a;
@@ -84,7 +84,7 @@
   display: flex;
   flex-direction: row;
   width: 50%;
-  max-width: 40rem; /* stay aligned with .container */
+  max-width: 42.5rem; /* stay aligned with .container */
   justify-content: space-between;
   margin: auto;
 }
@@ -139,8 +139,8 @@
   /* Readability improvements */
   margin-top: 2vh;
 
-  font-size: 1.125rem;
-  line-height: 1.65;
+  font-size: 1.25rem;
+  line-height: 1.6;
 }
 
 .body p {
@@ -315,7 +315,7 @@
   }
 
   .body {
-    font-size: 1.0625rem;
+    font-size: 1.125rem;
     max-width: 100%;
   }
 }
