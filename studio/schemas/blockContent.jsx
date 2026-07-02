@@ -95,7 +95,35 @@ export default {
                 withFilename: true,
             },
         },
-        { type: 'file', title: 'PDF' },
+        {
+            type: 'file',
+            title: 'PDF',
+            options: {
+                accept: 'application/pdf',
+            },
+            fields: [
+                {
+                    name: 'title',
+                    title: 'Title',
+                    type: 'string',
+                    description: 'A short readable title for links and search previews.',
+                },
+                {
+                    name: 'description',
+                    title: 'Description',
+                    type: 'text',
+                    rows: 3,
+                    description: 'Optional summary used on the first-party PDF page.',
+                },
+                {
+                    name: 'transcript',
+                    title: 'Text version',
+                    type: 'text',
+                    rows: 12,
+                    description: 'Plain text extracted from the PDF for search and accessibility.',
+                },
+            ],
+        },
         { type: 'latex', icon: mathIcon, title: 'Math block' },
         {
             type: 'poetry',
