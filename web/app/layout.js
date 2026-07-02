@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 import Navbar from '../components/Navbar';
 import '@fortawesome/fontawesome-svg-core/styles.css';
-import { Raleway, Roboto } from 'next/font/google';
+import { Raleway, Roboto, Literata } from 'next/font/google';
 
 // Configure the fonts
 const raleway = Raleway({
@@ -17,6 +17,14 @@ const roboto = Roboto({
   weight: ['100', '300', '400', '500', '700'],
   style: ['normal', 'italic'],
   variable: '--font-roboto',
+  display: 'swap',
+});
+
+// Serif for long-form post bodies (variable font, so no weight list needed)
+const literata = Literata({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  variable: '--font-literata',
   display: 'swap',
 });
 
@@ -93,7 +101,7 @@ export default function RootLayout({ children }) {
   };
 
   return (
-    <html lang="en" className={`${raleway.variable} ${roboto.variable}`}>
+    <html lang="en" className={`${raleway.variable} ${roboto.variable} ${literata.variable}`}>
       <head>
         <script
           type="application/ld+json"
