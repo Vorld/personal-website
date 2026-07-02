@@ -1,5 +1,6 @@
 import '../styles/globals.css';
 import Navbar from '../components/Navbar';
+import { Analytics } from '@vercel/analytics/next';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import { Raleway, Roboto, Literata } from 'next/font/google';
 
@@ -122,6 +123,7 @@ export default function RootLayout({ children }) {
         <Navbar>
           {children}
         </Navbar>
+        <Analytics />
       </body>
     </html>
   );
