@@ -250,10 +250,39 @@
   text-decoration: none;
 }
 
+.body ul,
+.body ol {
+  margin: 0 0 1.5em;
+  padding-left: 1.75em;
+}
+
+.body li {
+  margin-bottom: 0.4em;
+}
+
+/* Anchored headings shouldn't hide under the sticky header when jumped to */
+.body h1,
+.body h2,
+.body h3,
+.body h4 {
+  scroll-margin-top: 90px;
+}
+
 /* Custom Portable Text Component CSS */
 .poem {
   white-space: pre-wrap;
   margin-bottom: 20px;
+}
+
+.figure {
+  margin: 0 0 1.5em;
+}
+
+.caption {
+  margin-top: 0.5em;
+  font-size: 0.9rem;
+  color: #b0b0b0;
+  text-align: center;
 }
 
 @media only screen and (min-width: 768px) {

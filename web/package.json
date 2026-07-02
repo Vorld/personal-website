@@ -12,13 +12,15 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^3.3.1",
     "@portabletext/react": "^6.2.0",
+    "@sanity/asset-utils": "^2.3.0",
     "@sanity/client": "^7.23.0",
     "@sanity/image-url": "^2.1.1",
     "groq": "^6.3.0",
     "katex": "^0.16.22",
     "next": "^16.2.10",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-syntax-highlighter": "^16.1.1"
   },
   "devDependencies": {
     "eslint": "^9.26.0",
