@@ -1,4 +1,6 @@
-"use client"; // PortableText needs to be a client component if using custom client components like Latex or PDFViewer
+// Server component: Portable Text renders to HTML on the server; only the
+// interactive leaves (PDFViewer, CodeBlock, FormattedDate, Header) are
+// client components and ship JS.
 
 import styles from '../styles/Post.module.css'; // Corrected path
 import client from '../client'; // Corrected path
