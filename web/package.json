@@ -15,6 +15,7 @@
     "@sanity/asset-utils": "^2.3.0",
     "@sanity/client": "^7.23.0",
     "@sanity/image-url": "^2.1.1",
+    "@vercel/analytics": "^2.0.1",
     "groq": "^6.3.0",
     "katex": "^0.16.22",
     "next": "^16.2.10",
