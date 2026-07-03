@@ -1,14 +1,11 @@
 import { hashString } from './layout';
 import styles from '../../styles/MapOfMe.module.css';
 
-// Unit vectors (cos/sin 45°) for the done-star rays.
-const D = Math.SQRT1_2;
-const DIAGONALS = [
-    [D, -D],
-    [D, D],
-    [-D, D],
-    [-D, -D],
-];
+// Four-point sparkle: each quarter is a quadratic curve whose control point
+// sits at the centre, giving the concave sweep between the points.
+const sparklePath = (x, y, R) =>
+    `M ${x} ${y - R} Q ${x} ${y} ${x + R} ${y} Q ${x} ${y} ${x} ${y + R} ` +
+    `Q ${x} ${y} ${x - R} ${y} Q ${x} ${y} ${x} ${y - R} Z`;
 
 const Star = ({ star, selected, onSelect }) => {
     const { item, x, y, r } = star;
@@ -48,28 +45,15 @@ const Star = ({ star, selected, onSelect }) => {
                 style={{ animationDelay: pulseDelay }}
                 aria-hidden="true"
             />
-            {item.status === 'done' && (
-                // Four short diagonal rays with a gap around the core — a
-                // "risen" star. Diagonal (not orthogonal) so they read as a
-                // sparkle rather than a crosshair and stay clear of the
-                // label above.
-                <g className={styles.starSpikes} aria-hidden="true">
-                    {DIAGONALS.map(([sx, sy], i) => (
-                        <line
-                            key={i}
-                            x1={x + sx * r * 1.2}
-                            y1={y + sy * r * 1.2}
-                            x2={x + sx * r * 2.2}
-                            y2={y + sy * r * 2.2}
-                            vectorEffect="non-scaling-stroke"
-                        />
-                    ))}
-                </g>
-            )}
             {selected && (
                 <circle className={styles.starRing} cx={x} cy={y} r={r + 8} aria-hidden="true" />
             )}
-            <circle className={styles.starCore} cx={x} cy={y} r={r} />
+            {item.status === 'done' ? (
+                // Done aspirations are "risen": the dot becomes a sparkle.
+                <path className={styles.starSparkle} d={sparklePath(x, y, r * 2)} />
+            ) : (
+                <circle className={styles.starCore} cx={x} cy={y} r={r} />
+            )}
             <text
                 className={styles.starLabel}
                 y={-16}

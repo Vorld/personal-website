@@ -154,13 +154,7 @@
     transition: fill 0.25s ease;
 }
 
-.starSpikes line {
-    stroke: #ffffff;
-    stroke-opacity: 0.45;
-    stroke-width: 1;
-}
-
-.starDone .starCore {
+.starSparkle {
     fill: #ffffff;
 }
 
