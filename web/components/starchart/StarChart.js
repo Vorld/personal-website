@@ -24,6 +24,14 @@ const MOBILE_BREAKPOINT = 767;
 
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
+// Dust depth planes, back to front: higher factor = trails the camera more
+// = reads as further away. The constellations sit alone in the 1.0 plane.
+const DUST_LAYERS = [
+    { name: 'deep', factor: 0.8 },
+    { name: 'mid', factor: 0.6 },
+    { name: 'close', factor: 0.35 },
+];
+
 const renderDust = (d) => (
     <circle
         key={d.id}
@@ -48,7 +56,7 @@ const renderDust = (d) => (
 const StarChart = ({ items }) => {
     const viewportRef = useRef(null);
     const svgRef = useRef(null);
-    const farDustRef = useRef(null);
+    const dustLayerRefs = useRef({});
     const sizeRef = useRef({ width: 1, height: 1 });
     // Camera: world-coordinates centre + zoom. Source of truth lives here.
     const viewRef = useRef({ cx: WORLD.width / 2, cy: WORLD.height / 2, k: 0.1 });
@@ -96,12 +104,16 @@ const StarChart = ({ items }) => {
         // Labels counter-scale by 1/k so they render at fixed screen size,
         // and their visibility follows zoom: star names appear as you move
         // closer, category names recede once you're inside a constellation.
-        // Far dust follows the camera at 70%, so it pans at ~0.3× the speed
-        // of the constellations — parallax depth while dragging.
-        farDustRef.current.setAttribute(
-            'transform',
-            `translate(${(v.cx - WORLD.width / 2) * 0.7} ${(v.cy - WORLD.height / 2) * 0.7})`
-        );
+        // Each dust layer follows the camera by a different fraction, so it
+        // pans at (1 - factor)× the constellations' speed — layered depth.
+        const px = v.cx - WORLD.width / 2;
+        const py = v.cy - WORLD.height / 2;
+        for (const { name, factor } of DUST_LAYERS) {
+            dustLayerRefs.current[name]?.setAttribute(
+                'transform',
+                `translate(${px * factor} ${py * factor})`
+            );
+        }
         svg.style.setProperty('--inv-k', 1 / v.k);
         svg.style.setProperty(
             '--star-label-opacity',
@@ -382,10 +394,17 @@ const StarChart = ({ items }) => {
                 className={styles.sky}
                 style={{ visibility: ready ? 'visible' : 'hidden' }}
             >
-                <g ref={farDustRef} aria-hidden="true">
-                    {dust.far.map(renderDust)}
-                </g>
-                <g aria-hidden="true">{dust.near.map(renderDust)}</g>
+                {DUST_LAYERS.map(({ name }) => (
+                    <g
+                        key={name}
+                        ref={(el) => {
+                            dustLayerRefs.current[name] = el;
+                        }}
+                        aria-hidden="true"
+                    >
+                        {dust[name].map(renderDust)}
+                    </g>
+                ))}
                 {constellations.map((constellation) => (
                     <Constellation
                         key={constellation.key}

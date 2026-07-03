@@ -137,35 +137,30 @@ export function computeLayout(items) {
 }
 
 // Decorative background stars from a constant seed — same sky every visit.
-// Two depth layers: "far" pans slower than the camera (parallax), "near"
-// moves with the world.
+// Three depth layers, all behind the constellations, each panning at a
+// different fraction of the camera speed (see DUST_LAYERS in StarChart).
+// The constellation plane itself carries no dust — only real aspirations.
 export function computeDust() {
     const rand = mulberry32(20260703);
-    const far = [];
-    for (let i = 0; i < 130; i++) {
-        far.push({
-            id: `far-${i}`,
-            x: rand() * WORLD.width,
-            y: rand() * WORLD.height,
-            r: 0.4 + rand() * 0.7,
-            opacity: 0.08 + rand() * 0.16,
-            twinkle: rand() < 0.45,
-            duration: 3 + rand() * 4,
-            delay: rand() * 6,
-        });
-    }
-    const near = [];
-    for (let i = 0; i < 70; i++) {
-        near.push({
-            id: `near-${i}`,
-            x: rand() * WORLD.width,
-            y: rand() * WORLD.height,
-            r: 0.8 + rand() * 1.1,
-            opacity: 0.15 + rand() * 0.25,
-            twinkle: rand() < 0.45,
-            duration: 3 + rand() * 4,
-            delay: rand() * 6,
-        });
-    }
-    return { far, near };
+    const layer = (name, count, rMin, rSpread, oMin, oSpread) => {
+        const stars = [];
+        for (let i = 0; i < count; i++) {
+            stars.push({
+                id: `${name}-${i}`,
+                x: rand() * WORLD.width,
+                y: rand() * WORLD.height,
+                r: rMin + rand() * rSpread,
+                opacity: oMin + rand() * oSpread,
+                twinkle: rand() < 0.45,
+                duration: 3 + rand() * 4,
+                delay: rand() * 6,
+            });
+        }
+        return stars;
+    };
+    return {
+        deep: layer('deep', 70, 0.4, 0.5, 0.06, 0.1),
+        mid: layer('mid', 60, 0.6, 0.6, 0.1, 0.12),
+        close: layer('close', 45, 0.8, 0.9, 0.14, 0.14),
+    };
 }
