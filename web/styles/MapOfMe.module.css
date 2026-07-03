@@ -106,10 +106,10 @@
 @keyframes glowPulse {
     0%,
     100% {
-        opacity: 0.08;
+        opacity: 0.18;
     }
     50% {
-        opacity: 0.16;
+        opacity: 0.34;
     }
 }
 
@@ -143,15 +143,25 @@
     pointer-events: all;
 }
 
+/* fill comes from the radial gradient in the SVG defs */
 .starGlow {
-    fill: #e0e0e0;
-    opacity: 0.08;
+    opacity: 0.18;
     transition: opacity 0.25s ease;
 }
 
 .starCore {
     fill: #e0e0e0;
     transition: fill 0.25s ease;
+}
+
+.starSpikes line {
+    stroke: #ffffff;
+    stroke-opacity: 0.5;
+    stroke-width: 1;
+}
+
+.starDone .starCore {
+    fill: #ffffff;
 }
 
 .starRing {
@@ -187,7 +197,7 @@
 .star:hover .starGlow,
 .star:focus-visible .starGlow,
 .starSelected .starGlow {
-    opacity: 0.2;
+    opacity: 0.5;
 }
 
 /* Note panel */
@@ -285,6 +295,15 @@
     font-size: 1.05rem;
     line-height: 1.7;
     color: #e0e0e0;
+}
+
+.notePostscript {
+    margin: 14px 0 0;
+    font-family: var(--font-literata), serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #b0b0b0;
 }
 
 .noteNav {

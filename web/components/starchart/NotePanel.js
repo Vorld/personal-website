@@ -25,10 +25,16 @@ const NotePanel = ({ item, groupItems, onSelect, onClose }) => {
                     <p className={styles.noteKicker}>
                         {item.category}
                         {item.subcategory ? ` · ${item.subcategory}` : ''}
+                        {item.status === 'done'
+                            ? ` · done${item.completedAt ? ` · ${item.completedAt}` : ''}`
+                            : ''}
                     </p>
                     <h2 className={styles.noteTitle}>{item.title}</h2>
                     {item.placeName && <p className={styles.notePlace}>{item.placeName}</p>}
                     {item.note && <p className={styles.noteBody}>{item.note}</p>}
+                    {item.postscript && (
+                        <p className={styles.notePostscript}>— {item.postscript}</p>
+                    )}
                     {count > 1 && (
                         <div className={styles.noteNav}>
                             <button

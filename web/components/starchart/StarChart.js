@@ -75,6 +75,10 @@ const StarChart = ({ items }) => {
     const [selected, setSelected] = useState(null);
     const [focused, setFocused] = useState(null);
     const [hintDismissed, setHintDismissed] = useState(false);
+    // The hint returns whenever the camera is back out at overview zoom.
+    const [zoomedOut, setZoomedOut] = useState(true);
+    const zoomedOutRef = useRef(true);
+    const overviewKRef = useRef(0.1);
 
     const dismissHint = useCallback(() => setHintDismissed(true), []);
 
@@ -161,6 +165,11 @@ const StarChart = ({ items }) => {
                 'transform',
                 `translate(${px * factor} ${py * factor})`
             );
+        }
+        const isOut = v.k <= overviewKRef.current * 1.15;
+        if (isOut !== zoomedOutRef.current) {
+            zoomedOutRef.current = isOut;
+            setZoomedOut(isOut);
         }
         svg.style.setProperty('--inv-k', 1 / v.k);
         svg.style.setProperty(
@@ -306,11 +315,13 @@ const StarChart = ({ items }) => {
                 Math.min(rect.width / WORLD.width, rect.height / WORLD.height) * 0.95;
         };
         measure();
+        overviewKRef.current = overviewTarget().k;
         applyView(clampView(overviewTarget()));
         setReady(true);
 
         const onResize = () => {
             measure();
+            overviewKRef.current = overviewTarget().k;
             applyView(clampView(viewRef.current));
         };
         window.addEventListener('resize', onResize);
@@ -366,8 +377,12 @@ const StarChart = ({ items }) => {
                 drifters.push({
                     el,
                     id: s.item.id,
-                    ampX: 2 + (seed % 100) / 55,
-                    ampY: 2 + ((seed >> 3) % 100) / 55,
+                    // Screen pixels — divided by the live zoom each frame so
+                    // the drift is equally perceptible at every zoom level
+                    // (in fixed world units it shrank to a sub-pixel crawl
+                    // at overview).
+                    ampX: 2.5 + (seed % 100) / 55,
+                    ampY: 2.5 + ((seed >> 3) % 100) / 55,
                     freqX: 0.25 + ((seed >> 5) % 100) / 260,
                     freqY: 0.25 + ((seed >> 7) % 100) / 260,
                     phaseX: (seed % 6283) / 1000,
@@ -389,9 +404,10 @@ const StarChart = ({ items }) => {
         let raf;
         const step = (now) => {
             const t = now / 1000;
+            const { k } = viewRef.current;
             for (const d of drifters) {
-                const dx = d.ampX * Math.sin(t * d.freqX + d.phaseX);
-                const dy = d.ampY * Math.sin(t * d.freqY + d.phaseY);
+                const dx = (d.ampX / k) * Math.sin(t * d.freqX + d.phaseX);
+                const dy = (d.ampY / k) * Math.sin(t * d.freqY + d.phaseY);
                 d.el.style.transform = `translate(${dx}px, ${dy}px)`;
                 offsets.set(d.id, { dx, dy });
             }
@@ -510,6 +526,16 @@ const StarChart = ({ items }) => {
                 className={styles.sky}
                 style={{ visibility: ready ? 'visible' : 'hidden' }}
             >
+                <defs>
+                    {/* Soft-falloff glow: when its opacity animates, each ring
+                        crosses a brightness step at a different moment, so the
+                        pulse reads as breathing light instead of blinking. */}
+                    <radialGradient id="star-glow-gradient">
+                        <stop offset="0%" stopColor="#e0e0e0" stopOpacity="0.9" />
+                        <stop offset="45%" stopColor="#e0e0e0" stopOpacity="0.35" />
+                        <stop offset="100%" stopColor="#e0e0e0" stopOpacity="0" />
+                    </radialGradient>
+                </defs>
                 {DUST_LAYERS.map(({ name }) => (
                     <g
                         key={name}
@@ -531,7 +557,9 @@ const StarChart = ({ items }) => {
                 ))}
             </svg>
             <p
-                className={`${styles.hint} ${hintDismissed ? styles.hintHidden : ''}`}
+                className={`${styles.hint} ${
+                    hintDismissed && !zoomedOut ? styles.hintHidden : ''
+                }`}
                 aria-hidden="true"
             >
                 drag to wander · scroll to zoom · wish upon a star

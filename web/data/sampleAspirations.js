@@ -132,6 +132,9 @@ const sampleAspirations = [
         subcategory: 'games',
         note: 'A game about exploring a hand-crafted solar system, best played knowing nothing. Fitting for this page.',
         prominence: 2,
+        status: 'done',
+        completedAt: '2024',
+        postscript: 'Still think about the ending.',
     },
 
     // DO
@@ -141,6 +144,9 @@ const sampleAspirations = [
         category: 'do',
         note: 'Read something I wrote to a room of strangers. Terrifying in the useful way.',
         prominence: 2,
+        status: 'done',
+        completedAt: '2025',
+        postscript: 'Read two poems. Hands shook the whole time. Worth it.',
     },
     {
         id: 'do-jazz-jam',
