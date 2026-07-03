@@ -227,11 +227,12 @@
     height: 100%;
 }
 
-/* The visit place-card: right ~half of the screen, map beside the note. */
+/* The visit place-card: the right half of the screen — note on top, the
+   map filling the space below it. */
 .notePanelWide {
     top: 24px;
     bottom: 24px;
-    width: min(48vw, 900px);
+    width: calc(50vw - 48px);
     max-height: none;
     transform: translateX(12px);
 }
@@ -240,11 +241,22 @@
     transform: translateX(0);
 }
 
+/* column-reverse: the map is DOM-first (so one instance survives touring)
+   but reads below the note. */
+.notePanelWide .notePanelInner {
+    flex-direction: column-reverse;
+}
+
+.notePanelWide .noteContent {
+    flex: 0 1 auto;
+}
+
 .noteMap {
     position: relative;
     flex: 1 1 55%;
     min-width: 0;
-    border-radius: 10px 0 0 10px;
+    min-height: 260px;
+    border-radius: 0 0 10px 10px;
     overflow: hidden;
     background-color: #121212;
 }
@@ -436,19 +448,16 @@
         transform: translateY(0);
     }
 
-    /* Place-card stacks: map above the note in the bottom sheet. */
+    /* Place-card bottom sheet: note on top, map below it. */
     .notePanelWide {
         width: auto;
         max-height: 75dvh;
     }
 
-    .notePanelWide .notePanelInner {
-        flex-direction: column;
-    }
-
     .noteMap {
         flex: 0 0 auto;
         height: 230px;
-        border-radius: 12px 12px 0 0;
+        min-height: 0;
+        border-radius: 0;
     }
 }

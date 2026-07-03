@@ -24,9 +24,10 @@ const OVERVIEW_PADDING = 220;
 const SELECT_MIN_K = 0.75;
 // Desktop note panel occupies the right edge; offset the camera centre so
 // the selected star sits centred in the remaining space. Visit items open
-// the wide place-card (right ~half of the screen), so they need more room.
+// the place-card covering the right half of the screen, so they need more
+// room — half the card's width.
 const PANEL_CLEARANCE = 210;
-const WIDE_PANEL_FRACTION = 0.27;
+const WIDE_PANEL_FRACTION = 0.25;
 const MOBILE_BREAKPOINT = 767;
 
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
