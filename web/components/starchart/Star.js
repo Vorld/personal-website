@@ -1,6 +1,15 @@
 import { hashString } from './layout';
 import styles from '../../styles/MapOfMe.module.css';
 
+// Unit vectors (cos/sin 45°) for the done-star rays.
+const D = Math.SQRT1_2;
+const DIAGONALS = [
+    [D, -D],
+    [D, D],
+    [-D, D],
+    [-D, -D],
+];
+
 const Star = ({ star, selected, onSelect }) => {
     const { item, x, y, r } = star;
     // Deterministic stagger so the glow pulses aren't in lockstep.
@@ -40,22 +49,21 @@ const Star = ({ star, selected, onSelect }) => {
                 aria-hidden="true"
             />
             {item.status === 'done' && (
-                // Four-point diffraction spikes — a "risen" star.
+                // Four short diagonal rays with a gap around the core — a
+                // "risen" star. Diagonal (not orthogonal) so they read as a
+                // sparkle rather than a crosshair and stay clear of the
+                // label above.
                 <g className={styles.starSpikes} aria-hidden="true">
-                    <line
-                        x1={x - r * 4.5}
-                        y1={y}
-                        x2={x + r * 4.5}
-                        y2={y}
-                        vectorEffect="non-scaling-stroke"
-                    />
-                    <line
-                        x1={x}
-                        y1={y - r * 4.5}
-                        x2={x}
-                        y2={y + r * 4.5}
-                        vectorEffect="non-scaling-stroke"
-                    />
+                    {DIAGONALS.map(([sx, sy], i) => (
+                        <line
+                            key={i}
+                            x1={x + sx * r * 1.2}
+                            y1={y + sy * r * 1.2}
+                            x2={x + sx * r * 2.2}
+                            y2={y + sy * r * 2.2}
+                            vectorEffect="non-scaling-stroke"
+                        />
+                    ))}
                 </g>
             )}
             {selected && (
