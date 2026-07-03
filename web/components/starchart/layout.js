@@ -8,13 +8,16 @@
 export const WORLD = { width: 4000, height: 2600 };
 
 // Irregular anchor placement so the sky reads as constellations, not a grid.
+// Each constellation is defined by what its wishes resolve to:
+// visit → place · learn → skill/knowledge · make → artifact ·
+// experience → event/action · consume → media · acquire → object.
 export const CATEGORIES = [
     { key: 'visit', label: 'VISIT', anchor: { x: 1225, y: 825 } },
     { key: 'learn', label: 'LEARN', anchor: { x: 2375, y: 675 } },
     { key: 'make', label: 'MAKE', anchor: { x: 2925, y: 1275 } },
-    { key: 'do', label: 'DO', anchor: { x: 1075, y: 1725 } },
+    { key: 'experience', label: 'EXPERIENCE', anchor: { x: 1075, y: 1725 } },
     { key: 'consume', label: 'CONSUME', anchor: { x: 1975, y: 1425 } },
-    { key: 'get', label: 'GET', anchor: { x: 2775, y: 1925 } },
+    { key: 'acquire', label: 'ACQUIRE', anchor: { x: 2775, y: 1925 } },
 ];
 
 // djb2
@@ -126,7 +129,8 @@ export function computeLayout(items) {
                 item,
                 x: cat.anchor.x + Math.cos(angle) * dist,
                 y: cat.anchor.y + Math.sin(angle) * dist,
-                r: 2 + (item.prominence || 1) * 1.5,
+                // Star size reflects how much the wish is wanted.
+                r: 2 + (item.desire || 1) * 1.5,
             };
         });
         relax(stars);

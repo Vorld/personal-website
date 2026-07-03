@@ -11,16 +11,21 @@ export default {
         },
         {
             name: 'category',
-            title: 'Category',
+            title: 'Constellation',
+            description:
+                'By what the wish resolves to. Boundaries: if the place itself is ' +
+                'the wish it is Visit, if the doing is, Experience. Media is ' +
+                'on-demand and repeatable; experiences are occasions. Made by me ' +
+                'is Make; obtained by me is Acquire.',
             type: 'string',
             options: {
                 list: [
-                    { title: 'Visit', value: 'visit' },
-                    { title: 'Learn', value: 'learn' },
-                    { title: 'Make', value: 'make' },
-                    { title: 'Consume', value: 'consume' },
-                    { title: 'Do', value: 'do' },
-                    { title: 'Get', value: 'get' },
+                    { title: 'Visit — a place', value: 'visit' },
+                    { title: 'Learn — a skill / knowledge', value: 'learn' },
+                    { title: 'Make — an artifact', value: 'make' },
+                    { title: 'Experience — an event / action', value: 'experience' },
+                    { title: 'Consume — media', value: 'consume' },
+                    { title: 'Acquire — an object', value: 'acquire' },
                 ],
                 layout: 'radio',
             },
@@ -63,9 +68,9 @@ export default {
                 }),
         },
         {
-            name: 'prominence',
-            title: 'Prominence',
-            description: 'Star size on the chart: 1 (faint) to 3 (bright).',
+            name: 'desire',
+            title: 'How much I want it',
+            description: '1 (someday, quietly) to 3 (burning). Drawn as the star\'s size.',
             type: 'number',
             initialValue: 2,
             validation: (Rule) => Rule.min(1).max(3).integer(),
@@ -98,21 +103,14 @@ export default {
             rows: 2,
             hidden: ({ document }) => document?.status !== 'done',
         },
-        {
-            name: 'order',
-            title: 'Order',
-            description: 'Optional sort within the category (lower first).',
-            type: 'number',
-        },
     ],
 
     orderings: [
         {
-            title: 'Category',
+            title: 'Constellation',
             name: 'categoryAsc',
             by: [
                 { field: 'category', direction: 'asc' },
-                { field: 'order', direction: 'asc' },
                 { field: 'title', direction: 'asc' },
             ],
         },

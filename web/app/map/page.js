@@ -7,7 +7,7 @@ import AspirationList from '../../components/AspirationList';
 // Fetch data at the server level
 async function getAspirations() {
     const aspirations = await client.fetch(groq`*[_type == "aspiration"]
-        | order(category asc, coalesce(order, 999) asc, title asc) {
+        | order(category asc, title asc) {
         "id": _id,
         title,
         category,
@@ -15,7 +15,7 @@ async function getAspirations() {
         note,
         placeName,
         "location": location{ lat, lng },
-        "prominence": coalesce(prominence, 2),
+        "desire": coalesce(desire, 2),
         status,
         completedAt,
         postscript
