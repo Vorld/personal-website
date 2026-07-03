@@ -1,4 +1,5 @@
-import client from '../../client'; 
+import client from '../../client';
+import { pdfPathFromRef } from '../../lib/pdf';
 
 
 const SITE_URL = 'https://www.venugopal.net';
@@ -94,8 +95,7 @@ export async function GET() {
         .join('')}
       ${allPdfs
         .map((pdf) => {
-          const [_file, id, extension] = pdf.ref.split('-');
-          const pdfUrl = `https://cdn.sanity.io/files/qjy3hvt5/production/${id}.${extension}`;
+          const pdfUrl = `${SITE_URL}${pdfPathFromRef(pdf.ref)}`;
           return `
             <url>
               <loc>${pdfUrl}</loc>

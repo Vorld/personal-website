@@ -14,6 +14,7 @@ import Image from 'next/image';
 import Header from './Header'; // Corrected path
 import FormattedDate from './FormattedDate'; // Corrected path
 import PDFViewer from './PDFViewer/PDFViewer'; // Corrected path
+import { pdfPathFromRef } from '../lib/pdf';
 import CodeBlock from './CodeBlock';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons';
@@ -91,34 +92,15 @@ const ptComponents = {
         file: ({ value }) => {
             if (!value?.asset?._ref) return null;
             const { _ref } = value.asset;
-            const [_file, id, extension] = _ref.split('-');
-            const url =
-                'https://cdn.sanity.io/files/qjy3hvt5/production/' +
-                id +
-                '.' +
-                extension;
+            const [_file, id] = _ref.split('-');
+            const url = pdfPathFromRef(_ref);
 
             return (
                 <>
-                    {/* PDF URL link for SEO - hidden from view but in DOM */}
-                    <a
-                        href={url}
-                        aria-label="Download PDF document"
-                        style={{
-                            position: 'absolute',
-                            width: '1px',
-                            height: '1px',
-                            padding: 0,
-                            margin: '-1px',
-                            overflow: 'hidden',
-                            clip: 'rect(0,0,0,0)',
-                            whiteSpace: 'nowrap',
-                            border: 0
-                        }}
-                    >
-                        View PDF Document
-                    </a>
                     <PDFViewer url={url} id={id} />
+                    <a href={url} className={styles.pdfLink} target="_blank">
+                        Open PDF
+                    </a>
                 </>
             );
         },
