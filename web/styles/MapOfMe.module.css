@@ -8,6 +8,10 @@
     user-select: none;
 }
 
+.grabbing {
+    cursor: grabbing;
+}
+
 .world {
     position: absolute;
     top: 0;
