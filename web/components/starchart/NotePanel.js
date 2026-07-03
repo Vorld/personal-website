@@ -56,8 +56,12 @@ const NotePanel = ({ item, groupItems, onSelect, onClose }) => {
                         <p className={styles.noteKicker}>
                             {item.category}
                             {item.subcategory ? ` · ${item.subcategory}` : ''}
-                            {item.status === 'done'
-                                ? ` · done${item.completedAt ? ` · ${item.completedAt}` : ''}`
+                            {item.done
+                                ? ` · done${
+                                      item.completedAt
+                                          ? ` · ${item.completedAt.slice(0, 4)}`
+                                          : ''
+                                  }`
                                 : ''}
                         </p>
                         <h2 className={styles.noteTitle}>{item.title}</h2>

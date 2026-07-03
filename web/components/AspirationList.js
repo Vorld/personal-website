@@ -21,8 +21,12 @@ const AspirationList = ({ items }) => {
                                     <p className={styles.listItemTitle}>
                                         {item.title}
                                         {item.placeName ? ` — ${item.placeName}` : ''}
-                                        {item.status === 'done'
-                                            ? ` ✦ done${item.completedAt ? ` ${item.completedAt}` : ''}`
+                                        {item.done
+                                            ? ` ✦ done${
+                                                  item.completedAt
+                                                      ? ` ${item.completedAt.slice(0, 4)}`
+                                                      : ''
+                                              }`
                                             : ''}
                                     </p>
                                     {item.note && <p className={styles.listItemNote}>{item.note}</p>}

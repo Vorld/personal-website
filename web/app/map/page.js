@@ -16,7 +16,7 @@ async function getAspirations() {
         placeName,
         "location": location{ lat, lng },
         "desire": coalesce(desire, 2),
-        status,
+        done,
         completedAt,
         postscript
     }`);

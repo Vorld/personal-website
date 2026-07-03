@@ -11,21 +11,16 @@ export default {
         },
         {
             name: 'category',
-            title: 'Constellation',
-            description:
-                'By what the wish resolves to. Boundaries: if the place itself is ' +
-                'the wish it is Visit, if the doing is, Experience. Media is ' +
-                'on-demand and repeatable; experiences are occasions. Made by me ' +
-                'is Make; obtained by me is Acquire.',
+            title: 'Category',
             type: 'string',
             options: {
                 list: [
-                    { title: 'Visit — a place', value: 'visit' },
-                    { title: 'Learn — a skill / knowledge', value: 'learn' },
-                    { title: 'Make — an artifact', value: 'make' },
-                    { title: 'Experience — an event / action', value: 'experience' },
-                    { title: 'Consume — media', value: 'consume' },
-                    { title: 'Acquire — an object', value: 'acquire' },
+                    { title: 'Visit', value: 'visit' },
+                    { title: 'Learn', value: 'learn' },
+                    { title: 'Make', value: 'make' },
+                    { title: 'Experience', value: 'experience' },
+                    { title: 'Consume', value: 'consume' },
+                    { title: 'Acquire', value: 'acquire' },
                 ],
                 layout: 'radio',
             },
@@ -34,8 +29,16 @@ export default {
         {
             name: 'subcategory',
             title: 'Subcategory',
-            description: 'e.g. movies / shows / books / games',
             type: 'string',
+            options: {
+                list: [
+                    { title: 'Movies', value: 'movies' },
+                    { title: 'Shows', value: 'shows' },
+                    { title: 'Books', value: 'books' },
+                    { title: 'Games', value: 'games' },
+                ],
+                layout: 'radio',
+            },
             hidden: ({ document }) => document?.category !== 'consume',
         },
         {
@@ -47,14 +50,12 @@ export default {
         {
             name: 'placeName',
             title: 'Place name',
-            description: 'e.g. "Kyoto, Japan"',
             type: 'string',
             hidden: ({ document }) => document?.category !== 'visit',
         },
         {
             name: 'location',
             title: 'Location',
-            description: 'The map in the place card opens on this point.',
             type: 'geopoint',
             hidden: ({ document }) => document?.category !== 'visit',
             // Visit stars open a card with the place on a map, so the
@@ -69,31 +70,23 @@ export default {
         },
         {
             name: 'desire',
-            title: 'How much I want it',
-            description: '1 (someday, quietly) to 3 (burning). Drawn as the star\'s size.',
+            title: 'Desire',
+            description: 'How much I want it, 1–3. Drawn as the star\'s size.',
             type: 'number',
             initialValue: 2,
             validation: (Rule) => Rule.min(1).max(3).integer(),
         },
         {
-            name: 'status',
-            title: 'Status',
-            type: 'string',
-            options: {
-                list: [
-                    { title: 'Someday', value: 'someday' },
-                    { title: 'Done', value: 'done' },
-                ],
-                layout: 'radio',
-            },
-            initialValue: 'someday',
+            name: 'done',
+            title: 'Done',
+            type: 'boolean',
+            initialValue: false,
         },
         {
             name: 'completedAt',
-            title: 'Completed',
-            description: 'Freeform, e.g. "2025" or "March 2025".',
-            type: 'string',
-            hidden: ({ document }) => document?.status !== 'done',
+            title: 'Completed at',
+            type: 'date',
+            hidden: ({ document }) => !document?.done,
         },
         {
             name: 'postscript',
@@ -101,13 +94,13 @@ export default {
             description: 'A line about how it actually went.',
             type: 'text',
             rows: 2,
-            hidden: ({ document }) => document?.status !== 'done',
+            hidden: ({ document }) => !document?.done,
         },
     ],
 
     orderings: [
         {
-            title: 'Constellation',
+            title: 'Category',
             name: 'categoryAsc',
             by: [
                 { field: 'category', direction: 'asc' },
@@ -121,10 +114,10 @@ export default {
             title: 'title',
             category: 'category',
             subcategory: 'subcategory',
-            status: 'status',
+            done: 'done',
         },
-        prepare({ title, category, subcategory, status }) {
-            const parts = [category, subcategory, status === 'done' ? 'done ✦' : null];
+        prepare({ title, category, subcategory, done }) {
+            const parts = [category, subcategory, done ? 'done ✦' : null];
             return {
                 title,
                 subtitle: parts.filter(Boolean).join(' · '),

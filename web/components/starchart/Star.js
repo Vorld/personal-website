@@ -13,7 +13,7 @@ const Star = ({ star, selected, onSelect }) => {
     const pulseDelay = `${(hashString(item.id) % 7000) / 1000}s`;
     // The label anchors to the star's top edge (sparkles reach 2× the dot
     // radius), so the screen-pixel gap below it stays clear at any zoom.
-    const topExtent = item.status === 'done' ? r * 2 : r;
+    const topExtent = item.done ? r * 2 : r;
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -25,7 +25,7 @@ const Star = ({ star, selected, onSelect }) => {
     return (
         <g
             className={`${styles.star} ${selected ? styles.starSelected : ''} ${
-                item.status === 'done' ? styles.starDone : ''
+                item.done ? styles.starDone : ''
             }`}
             data-star-id={item.id}
             role="button"
@@ -51,7 +51,7 @@ const Star = ({ star, selected, onSelect }) => {
             {selected && (
                 <circle className={styles.starRing} cx={x} cy={y} r={r + 8} aria-hidden="true" />
             )}
-            {item.status === 'done' ? (
+            {item.done ? (
                 // Done aspirations are "risen": the dot becomes a sparkle.
                 <path className={styles.starSparkle} d={sparklePath(x, y, r * 2)} />
             ) : (
