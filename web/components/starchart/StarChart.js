@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { WORLD, computeLayout, computeDust } from './layout';
 import Constellation from './Constellation';
+import NotePanel from './NotePanel';
 import styles from '../../styles/MapOfMe.module.css';
 
 const MAX_SCALE = 1.75;
+const DRAG_THRESHOLD = 5;
 
 const StarChart = ({ items }) => {
     const viewportRef = useRef(null);
@@ -15,7 +17,11 @@ const StarChart = ({ items }) => {
     const viewRef = useRef({ x: 0, y: 0, scale: 0.1 });
     const fitScaleRef = useRef(0.1);
     const dragRef = useRef(null);
+    // Set when a real pan just ended, so the click that follows it doesn't
+    // clear the selected star.
+    const suppressClickRef = useRef(false);
     const [ready, setReady] = useState(false);
+    const [selected, setSelected] = useState(null);
 
     const constellations = useMemo(() => computeLayout(items), [items]);
     const dust = useMemo(() => computeDust(), []);
@@ -87,8 +93,19 @@ const StarChart = ({ items }) => {
         return () => viewport.removeEventListener('wheel', onWheel);
     }, [applyView, clampView]);
 
+    // Escape closes the note panel.
+    useEffect(() => {
+        if (!selected) return undefined;
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') setSelected(null);
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [selected]);
+
     const onPointerDown = (e) => {
         if (e.pointerType === 'mouse' && e.button !== 0) return;
+        suppressClickRef.current = false;
         const v = viewRef.current;
         dragRef.current = {
             pointerId: e.pointerId,
@@ -96,29 +113,49 @@ const StarChart = ({ items }) => {
             startY: e.clientY,
             viewX: v.x,
             viewY: v.y,
+            captured: false,
         };
-        viewportRef.current.setPointerCapture(e.pointerId);
-        viewportRef.current.classList.add(styles.grabbing);
     };
 
     const onPointerMove = (e) => {
         const drag = dragRef.current;
         if (!drag || e.pointerId !== drag.pointerId) return;
+        const dx = e.clientX - drag.startX;
+        const dy = e.clientY - drag.startY;
+        // Capture only once this is clearly a pan — capturing on pointerdown
+        // would retarget the pointerup and swallow star clicks.
+        if (!drag.captured) {
+            if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+            drag.captured = true;
+            viewportRef.current.setPointerCapture(e.pointerId);
+            viewportRef.current.classList.add(styles.grabbing);
+        }
         const v = viewRef.current;
         applyView(
             clampView({
                 scale: v.scale,
-                x: drag.viewX + (e.clientX - drag.startX),
-                y: drag.viewY + (e.clientY - drag.startY),
+                x: drag.viewX + dx,
+                y: drag.viewY + dy,
             })
         );
     };
 
     const endDrag = (e) => {
-        if (dragRef.current && e.pointerId === dragRef.current.pointerId) {
+        const drag = dragRef.current;
+        if (drag && e.pointerId === drag.pointerId) {
+            suppressClickRef.current = drag.captured;
             dragRef.current = null;
             viewportRef.current.classList.remove(styles.grabbing);
         }
+    };
+
+    const onViewportClick = () => {
+        if (suppressClickRef.current) {
+            suppressClickRef.current = false;
+            return;
+        }
+        // Click on empty sky (star clicks stop propagation) closes the panel.
+        setSelected(null);
     };
 
     return (
@@ -130,6 +167,7 @@ const StarChart = ({ items }) => {
             onPointerMove={onPointerMove}
             onPointerUp={endDrag}
             onPointerCancel={endDrag}
+            onClick={onViewportClick}
         >
             <div
                 ref={worldRef}
@@ -159,10 +197,16 @@ const StarChart = ({ items }) => {
                         ))}
                     </g>
                     {constellations.map((constellation) => (
-                        <Constellation key={constellation.key} constellation={constellation} />
+                        <Constellation
+                            key={constellation.key}
+                            constellation={constellation}
+                            selectedId={selected?.id}
+                            onSelectStar={setSelected}
+                        />
                     ))}
                 </svg>
             </div>
+            <NotePanel item={selected} onClose={() => setSelected(null)} />
         </section>
     );
 };

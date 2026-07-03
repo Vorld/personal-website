@@ -1,7 +1,7 @@
 import Star from './Star';
 import styles from '../../styles/MapOfMe.module.css';
 
-const Constellation = ({ constellation }) => {
+const Constellation = ({ constellation, selectedId, onSelectStar }) => {
     const { label, anchor, stars, edges } = constellation;
 
     return (
@@ -21,7 +21,12 @@ const Constellation = ({ constellation }) => {
                 {label}
             </text>
             {stars.map((star) => (
-                <Star key={star.item.id} star={star} />
+                <Star
+                    key={star.item.id}
+                    star={star}
+                    selected={star.item.id === selectedId}
+                    onSelect={onSelectStar}
+                />
             ))}
         </g>
     );

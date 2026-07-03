@@ -44,13 +44,32 @@
     text-anchor: middle;
 }
 
+.star {
+    cursor: pointer;
+    outline: none;
+}
+
+.starHit {
+    fill: transparent;
+    pointer-events: all;
+}
+
 .starGlow {
     fill: #e0e0e0;
     opacity: 0.08;
+    transition: opacity 0.25s ease;
 }
 
 .starCore {
     fill: #e0e0e0;
+    transition: fill 0.25s ease;
+}
+
+.starRing {
+    fill: none;
+    stroke: #7fb5ff;
+    stroke-width: 1;
+    stroke-opacity: 0.7;
 }
 
 .starLabel {
@@ -59,4 +78,121 @@
     font-family: var(--font-roboto), sans-serif;
     font-size: 14px;
     letter-spacing: 0.05em;
+    transition: opacity 0.25s ease, fill 0.25s ease;
+}
+
+.star:hover .starCore,
+.star:focus-visible .starCore,
+.starSelected .starCore {
+    fill: #7fb5ff;
+}
+
+.star:hover .starLabel,
+.star:focus-visible .starLabel,
+.starSelected .starLabel {
+    opacity: 1;
+    fill: #7fb5ff;
+}
+
+.star:hover .starGlow,
+.star:focus-visible .starGlow,
+.starSelected .starGlow {
+    opacity: 0.2;
+}
+
+/* Note panel */
+
+.notePanel {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    width: 340px;
+    max-width: calc(100% - 48px);
+    max-height: calc(100% - 48px);
+    overflow-y: auto;
+    background-color: #1e1e1e;
+    border: 1px solid #2c2c2c;
+    border-radius: 8px;
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 4;
+}
+
+.notePanelOpen {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.notePanelInner {
+    position: relative;
+    padding: 24px 28px 28px;
+}
+
+.noteClose {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    background: none;
+    border: none;
+    color: #808080;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.noteClose:hover {
+    color: #e0e0e0;
+}
+
+.noteKicker {
+    margin: 0 0 6px;
+    color: #808080;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+}
+
+.noteTitle {
+    margin: 0;
+    font-weight: lighter;
+    font-size: 1.4rem;
+}
+
+.notePlace {
+    margin: 4px 0 0;
+    color: #b0b0b0;
+    font-size: 0.85rem;
+}
+
+.noteBody {
+    margin: 16px 0 0;
+    font-family: var(--font-literata), serif;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: #e0e0e0;
+}
+
+@media screen and (max-width: 767px) {
+    .notePanel {
+        top: auto;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        width: auto;
+        max-width: none;
+        max-height: 45dvh;
+        border-radius: 12px 12px 0 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        transform: translateY(16px);
+    }
+
+    .notePanelOpen {
+        transform: translateY(0);
+    }
 }
