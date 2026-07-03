@@ -112,6 +112,11 @@ const NavbarContent = (props) => {
                             BLOG
                         </Link>
                     </li>
+                    <li>
+                        <Link href='/map' onClick={() => handleClick()} className={styles['nav-link']}>
+                            MAP
+                        </Link>
+                    </li>
                 </ul>
             </nav>
             <button
