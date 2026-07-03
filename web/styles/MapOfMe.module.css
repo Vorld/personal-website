@@ -116,27 +116,8 @@
     outline: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    /* Gentle positional drift. Amplitude stays below the smallest dot
-       radius (3.5 world units) so constellation lines — which point at the
-       static centres — never visibly detach. */
-    .star {
-        animation: breathe 10s ease-in-out infinite;
-    }
-}
-
-@keyframes breathe {
-    0%,
-    100% {
-        transform: translate(0, 0);
-    }
-    30% {
-        transform: translate(1.8px, -2.2px);
-    }
-    65% {
-        transform: translate(-1.6px, 1.4px);
-    }
-}
+/* Positional drift is driven from JS (StarChart's drift loop) so the
+   constellation lines move together with their stars. */
 
 .starHit {
     fill: transparent;

@@ -14,6 +14,8 @@ const Constellation = ({ constellation, selectedId, onSelectStar }) => {
                     y1={stars[i].y}
                     x2={stars[j].x}
                     y2={stars[j].y}
+                    data-edge-a={stars[i].item.id}
+                    data-edge-b={stars[j].item.id}
                     vectorEffect="non-scaling-stroke"
                     aria-hidden="true"
                 />

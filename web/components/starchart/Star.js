@@ -3,11 +3,8 @@ import styles from '../../styles/MapOfMe.module.css';
 
 const Star = ({ star, selected, onSelect }) => {
     const { item, x, y, r } = star;
-    // Deterministic stagger so the glow pulses and drift aren't in lockstep.
-    const seed = hashString(item.id);
-    const pulseDelay = `${(seed % 7000) / 1000}s`;
-    const breathDelay = `${(seed % 9000) / 1000}s`;
-    const breathDuration = `${8 + (seed % 5000) / 1000}s`;
+    // Deterministic stagger so the glow pulses aren't in lockstep.
+    const pulseDelay = `${(hashString(item.id) % 7000) / 1000}s`;
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -19,7 +16,7 @@ const Star = ({ star, selected, onSelect }) => {
     return (
         <g
             className={`${styles.star} ${selected ? styles.starSelected : ''}`}
-            style={{ animationDelay: breathDelay, animationDuration: breathDuration }}
+            data-star-id={item.id}
             role="button"
             tabIndex={0}
             aria-label={`${item.title} — read why`}

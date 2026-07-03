@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { WORLD, computeLayout, computeDust } from './layout';
+import { WORLD, computeLayout, computeDust, hashString } from './layout';
 import Constellation from './Constellation';
 import ConstellationIndex from './ConstellationIndex';
 import NotePanel from './NotePanel';
@@ -297,6 +297,72 @@ const StarChart = ({ items }) => {
         viewport.addEventListener('wheel', onWheel, { passive: false });
         return () => viewport.removeEventListener('wheel', onWheel);
     }, [applyView, clampView, stopTween, stopInertia]);
+
+    // Organic drift: a rAF loop owns per-star offsets (Lissajous-style, all
+    // parameters seeded from the item id) and applies them to the star group
+    // AND its line endpoints, so constellations drift as connected structures.
+    // JS rather than CSS keyframes because lines must follow their stars —
+    // and a future force-simulation drag mode can take over the same loop.
+    useEffect(() => {
+        if (!ready) return undefined;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+        const svg = svgRef.current;
+
+        const drifters = [];
+        constellations.forEach((c) =>
+            c.stars.forEach((s) => {
+                const el = svg.querySelector(`[data-star-id="${CSS.escape(s.item.id)}"]`);
+                if (!el) return;
+                const seed = hashString(s.item.id);
+                drifters.push({
+                    el,
+                    id: s.item.id,
+                    ampX: 2 + (seed % 100) / 55,
+                    ampY: 2 + ((seed >> 3) % 100) / 55,
+                    freqX: 0.25 + ((seed >> 5) % 100) / 260,
+                    freqY: 0.25 + ((seed >> 7) % 100) / 260,
+                    phaseX: (seed % 6283) / 1000,
+                    phaseY: ((seed >> 2) % 6283) / 1000,
+                });
+            })
+        );
+        const offsets = new Map();
+        const edges = Array.from(svg.querySelectorAll('[data-edge-a]')).map((el) => ({
+            el,
+            a: el.dataset.edgeA,
+            b: el.dataset.edgeB,
+            x1: Number(el.getAttribute('x1')),
+            y1: Number(el.getAttribute('y1')),
+            x2: Number(el.getAttribute('x2')),
+            y2: Number(el.getAttribute('y2')),
+        }));
+
+        let raf;
+        const step = (now) => {
+            const t = now / 1000;
+            for (const d of drifters) {
+                const dx = d.ampX * Math.sin(t * d.freqX + d.phaseX);
+                const dy = d.ampY * Math.sin(t * d.freqY + d.phaseY);
+                d.el.style.transform = `translate(${dx}px, ${dy}px)`;
+                offsets.set(d.id, { dx, dy });
+            }
+            for (const e of edges) {
+                const a = offsets.get(e.a);
+                const b = offsets.get(e.b);
+                if (a) {
+                    e.el.setAttribute('x1', e.x1 + a.dx);
+                    e.el.setAttribute('y1', e.y1 + a.dy);
+                }
+                if (b) {
+                    e.el.setAttribute('x2', e.x2 + b.dx);
+                    e.el.setAttribute('y2', e.y2 + b.dy);
+                }
+            }
+            raf = requestAnimationFrame(step);
+        };
+        raf = requestAnimationFrame(step);
+        return () => cancelAnimationFrame(raf);
+    }, [ready, constellations]);
 
     // Escape closes the note panel.
     useEffect(() => {
