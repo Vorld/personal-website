@@ -36,9 +36,11 @@ class ViewSDKClient {
             {
                 /* Pass information on how to access the file */
                 content: {
-                    /* Location of file where it is hosted */
+                    /* Location of file where it is hosted. Adobe fetches it
+                    from an iframe on its own origin, so a same-site relative
+                    path must be resolved to an absolute URL first */
                     location: {
-                        url: url,
+                        url: new URL(url, window.location.origin).href,
                         /*
                     If the file URL requires some additional headers, then it can be passed as follows:-
                     headers: [

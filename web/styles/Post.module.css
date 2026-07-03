@@ -303,6 +303,14 @@
   text-align: center;
 }
 
+.pdfLink {
+  display: block;
+  margin: 0.5em 0 1.5em;
+  font-size: 0.9rem;
+  color: #b0b0b0;
+  text-align: center;
+}
+
 @media only screen and (min-width: 768px) {
   .return:hover::before {
     opacity: 0;
