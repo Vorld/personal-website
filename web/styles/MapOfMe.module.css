@@ -201,9 +201,9 @@
     top: 50%;
     right: clamp(20px, 4vw, 56px);
     transform: translateY(-50%) translateX(12px);
-    width: clamp(460px, 42vw, 640px);
+    width: clamp(520px, 48vw, 720px);
     max-width: calc(100% - clamp(40px, 8vw, 112px));
-    max-height: calc(100% - 72px);
+    max-height: calc(100% - 48px);
     /* flex so the inner column shrinks (instead of clipping) when the
        card hits max-height — the note scrolls, the map keeps its size */
     display: flex;
@@ -222,11 +222,6 @@
     opacity: 1;
     transform: translateY(-50%) translateX(0);
     pointer-events: auto;
-}
-
-.notePanel:has(.noteGeoMap) {
-    width: clamp(520px, 48vw, 720px);
-    max-height: calc(100% - 48px);
 }
 
 /* One card design for every star; visit items only add the map block
