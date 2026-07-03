@@ -20,6 +20,46 @@
     will-change: transform;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+    .animating {
+        transition: transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+}
+
+/* Constellation index */
+
+.index {
+    position: absolute;
+    left: 24px;
+    /* clear the Navbar's round logo button in the bottom-left corner */
+    bottom: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    z-index: 3;
+}
+
+.indexItem {
+    background: none;
+    border: none;
+    padding: 4px 0;
+    color: #808080;
+    font-family: var(--font-roboto), sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    cursor: pointer;
+    transition: color 0.25s ease;
+}
+
+.indexItem:hover {
+    color: #e0e0e0;
+}
+
+.indexActive {
+    color: #7fb5ff;
+}
+
 .sky {
     display: block;
 }

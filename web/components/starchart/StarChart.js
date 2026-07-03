@@ -3,10 +3,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { WORLD, computeLayout, computeDust } from './layout';
 import Constellation from './Constellation';
+import ConstellationIndex from './ConstellationIndex';
 import NotePanel from './NotePanel';
 import styles from '../../styles/MapOfMe.module.css';
 
 const MAX_SCALE = 1.75;
+// Don't zoom in past this when focusing a constellation — keeps small
+// two-star groups from filling the screen.
+const FOCUS_MAX_SCALE = 1.1;
+const FOCUS_PADDING = 140;
 const DRAG_THRESHOLD = 5;
 
 const StarChart = ({ items }) => {
@@ -20,8 +25,10 @@ const StarChart = ({ items }) => {
     // Set when a real pan just ended, so the click that follows it doesn't
     // clear the selected star.
     const suppressClickRef = useRef(false);
+    const animTimeoutRef = useRef(null);
     const [ready, setReady] = useState(false);
     const [selected, setSelected] = useState(null);
+    const [focused, setFocused] = useState(null);
 
     const constellations = useMemo(() => computeLayout(items), [items]);
     const dust = useMemo(() => computeDust(), []);
@@ -49,6 +56,25 @@ const StarChart = ({ items }) => {
         worldRef.current.style.transform = `translate3d(${v.x}px, ${v.y}px, 0) scale(${v.scale})`;
     }, []);
 
+    const stopAnimation = useCallback(() => {
+        clearTimeout(animTimeoutRef.current);
+        worldRef.current.classList.remove(styles.animating);
+    }, []);
+
+    // Apply a view with the eased CSS transition (a no-op jump cut under
+    // prefers-reduced-motion, where the .animating class has no transition).
+    const animateTo = useCallback(
+        (v) => {
+            stopAnimation();
+            worldRef.current.classList.add(styles.animating);
+            applyView(clampView(v));
+            animTimeoutRef.current = setTimeout(() => {
+                worldRef.current.classList.remove(styles.animating);
+            }, 750);
+        },
+        [applyView, clampView, stopAnimation]
+    );
+
     // Initial view (whole sky fitted and centred) + re-clamp on resize.
     useEffect(() => {
         const setFitScale = () => {
@@ -74,6 +100,7 @@ const StarChart = ({ items }) => {
         const viewport = viewportRef.current;
         const onWheel = (e) => {
             e.preventDefault();
+            stopAnimation();
             const v = viewRef.current;
             const rect = viewport.getBoundingClientRect();
             const cursorX = e.clientX - rect.left;
@@ -91,7 +118,42 @@ const StarChart = ({ items }) => {
         };
         viewport.addEventListener('wheel', onWheel, { passive: false });
         return () => viewport.removeEventListener('wheel', onWheel);
-    }, [applyView, clampView]);
+    }, [applyView, clampView, stopAnimation]);
+
+    const focusConstellation = (key) => {
+        const constellation = constellations.find((c) => c.key === key);
+        if (!constellation || constellation.stars.length === 0) return;
+        const xs = constellation.stars.map((s) => s.x).concat(constellation.anchor.x);
+        const ys = constellation.stars.map((s) => s.y).concat(constellation.anchor.y);
+        const minX = Math.min(...xs) - FOCUS_PADDING;
+        const maxX = Math.max(...xs) + FOCUS_PADDING;
+        const minY = Math.min(...ys) - FOCUS_PADDING;
+        const maxY = Math.max(...ys) + FOCUS_PADDING;
+
+        const rect = viewportRef.current.getBoundingClientRect();
+        const scale = Math.min(
+            rect.width / (maxX - minX),
+            rect.height / (maxY - minY),
+            FOCUS_MAX_SCALE
+        );
+        animateTo({
+            scale,
+            x: rect.width / 2 - ((minX + maxX) / 2) * scale,
+            y: rect.height / 2 - ((minY + maxY) / 2) * scale,
+        });
+        setFocused(key);
+    };
+
+    const resetView = () => {
+        const rect = viewportRef.current.getBoundingClientRect();
+        const scale = fitScaleRef.current;
+        animateTo({
+            scale,
+            x: (rect.width - WORLD.width * scale) / 2,
+            y: (rect.height - WORLD.height * scale) / 2,
+        });
+        setFocused(null);
+    };
 
     // Escape closes the note panel.
     useEffect(() => {
@@ -105,6 +167,7 @@ const StarChart = ({ items }) => {
 
     const onPointerDown = (e) => {
         if (e.pointerType === 'mouse' && e.button !== 0) return;
+        stopAnimation();
         suppressClickRef.current = false;
         const v = viewRef.current;
         dragRef.current = {
@@ -206,6 +269,11 @@ const StarChart = ({ items }) => {
                     ))}
                 </svg>
             </div>
+            <ConstellationIndex
+                focused={focused}
+                onFocus={focusConstellation}
+                onReset={resetView}
+            />
             <NotePanel item={selected} onClose={() => setSelected(null)} />
         </section>
     );
