@@ -56,6 +56,44 @@
     fill: #e0e0e0;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+    .twinkle {
+        animation: twinkle var(--twinkle-duration, 4s) ease-in-out infinite;
+        animation-delay: var(--twinkle-delay, 0s);
+    }
+
+    .starGlow {
+        animation: glowPulse 7s ease-in-out infinite;
+    }
+
+    /* let the hover/selected bloom win over the idle pulse */
+    .star:hover .starGlow,
+    .star:focus-visible .starGlow,
+    .starSelected .starGlow {
+        animation: none;
+    }
+}
+
+@keyframes twinkle {
+    0%,
+    100% {
+        opacity: var(--o, 0.3);
+    }
+    50% {
+        opacity: calc(var(--o, 0.3) * 0.25);
+    }
+}
+
+@keyframes glowPulse {
+    0%,
+    100% {
+        opacity: 0.08;
+    }
+    50% {
+        opacity: 0.16;
+    }
+}
+
 .edge {
     stroke: #e0e0e0;
     stroke-opacity: 0.12;

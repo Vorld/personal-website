@@ -18,6 +18,22 @@ const TWEEN_MS = 650;
 
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
+const renderDust = (d) => (
+    <circle
+        key={d.id}
+        className={`${styles.dust} ${d.twinkle ? styles.twinkle : ''}`}
+        cx={d.x}
+        cy={d.y}
+        r={d.r}
+        opacity={d.opacity}
+        style={{
+            '--o': d.opacity,
+            '--twinkle-duration': `${d.duration}s`,
+            '--twinkle-delay': `${d.delay}s`,
+        }}
+    />
+);
+
 // The sky is rendered as one full-viewport SVG whose viewBox is the visible
 // world rect. Panning/zooming rewrites the viewBox attribute imperatively —
 // no React re-renders, and everything stays vector-crisp at any zoom (a CSS
@@ -90,16 +106,55 @@ const StarChart = ({ items }) => {
         );
     }, []);
 
+    const inertiaRef = useRef(null);
+
+    const stopInertia = useCallback(() => {
+        cancelAnimationFrame(inertiaRef.current);
+        inertiaRef.current = null;
+    }, []);
+
     const stopTween = useCallback(() => {
         cancelAnimationFrame(tweenRef.current);
         tweenRef.current = null;
     }, []);
+
+    // Glide on after a flick: velocity in screen px/ms, exponential friction.
+    const startInertia = useCallback(
+        (vx, vy) => {
+            if (Math.hypot(vx, vy) < 0.05) return;
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            stopInertia();
+            let lastTime = performance.now();
+            let cvx = vx;
+            let cvy = vy;
+            const step = (now) => {
+                const dt = now - lastTime;
+                lastTime = now;
+                const friction = Math.pow(0.994, dt);
+                cvx *= friction;
+                cvy *= friction;
+                const v = viewRef.current;
+                applyView(
+                    clampView({
+                        k: v.k,
+                        cx: v.cx - (cvx * dt) / v.k,
+                        cy: v.cy - (cvy * dt) / v.k,
+                    })
+                );
+                inertiaRef.current =
+                    Math.hypot(cvx, cvy) > 0.02 ? requestAnimationFrame(step) : null;
+            };
+            inertiaRef.current = requestAnimationFrame(step);
+        },
+        [applyView, clampView, stopInertia]
+    );
 
     // Eased camera move (zoom interpolated in log space so it feels linear);
     // jump cut under prefers-reduced-motion.
     const animateTo = useCallback(
         (target) => {
             stopTween();
+            stopInertia();
             const to = clampView(target);
             if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
                 applyView(to);
@@ -123,8 +178,14 @@ const StarChart = ({ items }) => {
             };
             tweenRef.current = requestAnimationFrame(step);
         },
-        [applyView, clampView, stopTween]
+        [applyView, clampView, stopTween, stopInertia]
     );
+
+    // Cancel any in-flight animation frames on unmount.
+    useEffect(() => () => {
+        stopTween();
+        stopInertia();
+    }, [stopTween, stopInertia]);
 
     const focusConstellation = (key) => {
         const constellation = constellations.find((c) => c.key === key);
@@ -177,6 +238,7 @@ const StarChart = ({ items }) => {
         const onWheel = (e) => {
             e.preventDefault();
             stopTween();
+            stopInertia();
             const v = viewRef.current;
             const rect = viewport.getBoundingClientRect();
             const sx = e.clientX - rect.left - rect.width / 2;
@@ -196,7 +258,7 @@ const StarChart = ({ items }) => {
         };
         viewport.addEventListener('wheel', onWheel, { passive: false });
         return () => viewport.removeEventListener('wheel', onWheel);
-    }, [applyView, clampView, stopTween]);
+    }, [applyView, clampView, stopTween, stopInertia]);
 
     // Escape closes the note panel.
     useEffect(() => {
@@ -211,6 +273,7 @@ const StarChart = ({ items }) => {
     const onPointerDown = (e) => {
         if (e.pointerType === 'mouse' && e.button !== 0) return;
         stopTween();
+        stopInertia();
         suppressClickRef.current = false;
         const v = viewRef.current;
         dragRef.current = {
@@ -238,6 +301,22 @@ const StarChart = ({ items }) => {
         }
         const { k } = viewRef.current;
         applyView(clampView({ k, cx: drag.startCx - dx / k, cy: drag.startCy - dy / k }));
+
+        // Smoothed pointer velocity for release inertia.
+        const now = performance.now();
+        if (drag.lastTime != null) {
+            const dt = now - drag.lastTime;
+            if (dt > 0) {
+                const vx = (e.clientX - drag.lastX) / dt;
+                const vy = (e.clientY - drag.lastY) / dt;
+                const blend = Math.min(dt / 50, 1);
+                drag.vx = drag.vx == null ? vx : drag.vx + (vx - drag.vx) * blend;
+                drag.vy = drag.vy == null ? vy : drag.vy + (vy - drag.vy) * blend;
+            }
+        }
+        drag.lastX = e.clientX;
+        drag.lastY = e.clientY;
+        drag.lastTime = now;
     };
 
     const endDrag = (e) => {
@@ -246,6 +325,7 @@ const StarChart = ({ items }) => {
             suppressClickRef.current = drag.captured;
             dragRef.current = null;
             viewportRef.current.classList.remove(styles.grabbing);
+            if (drag.captured) startInertia(drag.vx || 0, drag.vy || 0);
         }
     };
 
@@ -277,29 +357,9 @@ const StarChart = ({ items }) => {
                 style={{ visibility: ready ? 'visible' : 'hidden' }}
             >
                 <g ref={farDustRef} aria-hidden="true">
-                    {dust.far.map((d) => (
-                        <circle
-                            key={d.id}
-                            className={styles.dust}
-                            cx={d.x}
-                            cy={d.y}
-                            r={d.r}
-                            opacity={d.opacity}
-                        />
-                    ))}
+                    {dust.far.map(renderDust)}
                 </g>
-                <g aria-hidden="true">
-                    {dust.near.map((d) => (
-                        <circle
-                            key={d.id}
-                            className={styles.dust}
-                            cx={d.x}
-                            cy={d.y}
-                            r={d.r}
-                            opacity={d.opacity}
-                        />
-                    ))}
-                </g>
+                <g aria-hidden="true">{dust.near.map(renderDust)}</g>
                 {constellations.map((constellation) => (
                     <Constellation
                         key={constellation.key}

@@ -149,6 +149,9 @@ export function computeDust() {
             y: rand() * WORLD.height,
             r: 0.4 + rand() * 0.7,
             opacity: 0.06 + rand() * 0.14,
+            twinkle: rand() < 0.45,
+            duration: 3 + rand() * 4,
+            delay: rand() * 6,
         });
     }
     const near = [];
@@ -159,6 +162,9 @@ export function computeDust() {
             y: rand() * WORLD.height,
             r: 0.8 + rand() * 1.1,
             opacity: 0.15 + rand() * 0.25,
+            twinkle: rand() < 0.45,
+            duration: 3 + rand() * 4,
+            delay: rand() * 6,
         });
     }
     return { far, near };
