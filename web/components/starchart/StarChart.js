@@ -15,6 +15,12 @@ const FOCUS_MAX_K = 1.1;
 const FOCUS_PADDING = 140;
 const DRAG_THRESHOLD = 5;
 const TWEEN_MS = 650;
+// How far (world units) the camera may pan past the world bounds — soft
+// edges instead of hard walls.
+const OVERSCROLL = 260;
+// First view: inside the sky between VISIT, LEARN and CONSUME rather than
+// the full fitted overview — wandering outward is the natural first move.
+const INITIAL_VIEW = { cx: 1200, cy: 850, zoom: 1.45 };
 // Minimum zoom the camera glides to when a star is selected.
 const SELECT_MIN_K = 0.75;
 // Desktop note panel occupies the right edge; offset the camera centre so
@@ -78,16 +84,22 @@ const StarChart = ({ items }) => {
         const k = Math.min(Math.max(v.k, fitKRef.current), MAX_K);
         const viewW = width / k;
         const viewH = height / k;
-        // Centre-lock an axis where the whole world fits; otherwise keep the
-        // visible rect inside the world.
+        // Centre-lock an axis where the whole (overscroll-padded) world
+        // fits; otherwise keep the visible rect inside the padded world.
         const cx =
-            viewW >= WORLD.width
+            viewW >= WORLD.width + 2 * OVERSCROLL
                 ? WORLD.width / 2
-                : Math.min(WORLD.width - viewW / 2, Math.max(viewW / 2, v.cx));
+                : Math.min(
+                      WORLD.width + OVERSCROLL - viewW / 2,
+                      Math.max(viewW / 2 - OVERSCROLL, v.cx)
+                  );
         const cy =
-            viewH >= WORLD.height
+            viewH >= WORLD.height + 2 * OVERSCROLL
                 ? WORLD.height / 2
-                : Math.min(WORLD.height - viewH / 2, Math.max(viewH / 2, v.cy));
+                : Math.min(
+                      WORLD.height + OVERSCROLL - viewH / 2,
+                      Math.max(viewH / 2 - OVERSCROLL, v.cy)
+                  );
         return { cx, cy, k };
     }, []);
 
@@ -258,7 +270,13 @@ const StarChart = ({ items }) => {
                 Math.min(rect.width / WORLD.width, rect.height / WORLD.height) * 0.95;
         };
         measure();
-        applyView(clampView({ cx: WORLD.width / 2, cy: WORLD.height / 2, k: fitKRef.current }));
+        applyView(
+            clampView({
+                cx: INITIAL_VIEW.cx,
+                cy: INITIAL_VIEW.cy,
+                k: fitKRef.current * INITIAL_VIEW.zoom,
+            })
+        );
         setReady(true);
 
         const onResize = () => {
