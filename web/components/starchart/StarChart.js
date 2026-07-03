@@ -23,8 +23,10 @@ const OVERVIEW_PADDING = 220;
 // Minimum zoom the camera glides to when a star is selected.
 const SELECT_MIN_K = 0.75;
 // Desktop note panel occupies the right edge; offset the camera centre so
-// the selected star sits centred in the remaining space.
+// the selected star sits centred in the remaining space. Visit items open
+// the wide place-card (right ~half of the screen), so they need more room.
 const PANEL_CLEARANCE = 210;
+const WIDE_PANEL_FRACTION = 0.27;
 const MOBILE_BREAKPOINT = 767;
 
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
@@ -273,9 +275,13 @@ const StarChart = ({ items }) => {
             const { width, height } = sizeRef.current;
             const k = Math.max(viewRef.current.k, SELECT_MIN_K);
             const isMobile = width <= MOBILE_BREAKPOINT;
+            const clearance =
+                item.category === 'visit' && item.location
+                    ? width * WIDE_PANEL_FRACTION
+                    : PANEL_CLEARANCE;
             animateTo({
                 k,
-                cx: isMobile ? star.x : star.x + PANEL_CLEARANCE / k,
+                cx: isMobile ? star.x : star.x + clearance / k,
                 cy: isMobile ? star.y + (0.2 * height) / k : star.y,
             });
             return;
@@ -333,6 +339,9 @@ const StarChart = ({ items }) => {
     useEffect(() => {
         const viewport = viewportRef.current;
         const onWheel = (e) => {
+            // Wheel inside UI layers (note panel, its embedded map, index)
+            // belongs to them — scrolling a note must not zoom the sky.
+            if (e.target.closest?.('[data-sky-ui]')) return;
             e.preventDefault();
             stopTween();
             stopInertia();

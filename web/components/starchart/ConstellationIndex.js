@@ -4,7 +4,7 @@ import styles from '../../styles/MapOfMe.module.css';
 // Fixed legend: orientation + quick navigation between constellations.
 const ConstellationIndex = ({ focused, onFocus, onReset }) => {
     return (
-        <nav className={styles.index} aria-label="Constellations">
+        <nav className={styles.index} aria-label="Constellations" data-sky-ui>
             <button
                 className={`${styles.indexItem} ${!focused ? styles.indexActive : ''}`}
                 onClick={onReset}
