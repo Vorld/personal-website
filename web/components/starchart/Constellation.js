@@ -14,6 +14,7 @@ const Constellation = ({ constellation, selectedId, onSelectStar }) => {
                     y1={stars[i].y}
                     x2={stars[j].x}
                     y2={stars[j].y}
+                    vectorEffect="non-scaling-stroke"
                     aria-hidden="true"
                 />
             ))}

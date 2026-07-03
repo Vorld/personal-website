@@ -7,25 +7,34 @@ import ConstellationIndex from './ConstellationIndex';
 import NotePanel from './NotePanel';
 import styles from '../../styles/MapOfMe.module.css';
 
-const MAX_SCALE = 1.75;
+// k = screen pixels per world unit
+const MAX_K = 1.75;
 // Don't zoom in past this when focusing a constellation — keeps small
 // two-star groups from filling the screen.
-const FOCUS_MAX_SCALE = 1.1;
+const FOCUS_MAX_K = 1.1;
 const FOCUS_PADDING = 140;
 const DRAG_THRESHOLD = 5;
+const TWEEN_MS = 650;
 
+const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+// The sky is rendered as one full-viewport SVG whose viewBox is the visible
+// world rect. Panning/zooming rewrites the viewBox attribute imperatively —
+// no React re-renders, and everything stays vector-crisp at any zoom (a CSS
+// transform on a big rasterised layer is what made the first prototype look
+// low-res).
 const StarChart = ({ items }) => {
     const viewportRef = useRef(null);
-    const worldRef = useRef(null);
-    // Transform source of truth lives in a ref and is applied directly to
-    // the world element during gestures, so panning never re-renders React.
-    const viewRef = useRef({ x: 0, y: 0, scale: 0.1 });
-    const fitScaleRef = useRef(0.1);
+    const svgRef = useRef(null);
+    const sizeRef = useRef({ width: 1, height: 1 });
+    // Camera: world-coordinates centre + zoom. Source of truth lives here.
+    const viewRef = useRef({ cx: WORLD.width / 2, cy: WORLD.height / 2, k: 0.1 });
+    const fitKRef = useRef(0.1);
     const dragRef = useRef(null);
+    const tweenRef = useRef(null);
     // Set when a real pan just ended, so the click that follows it doesn't
     // clear the selected star.
     const suppressClickRef = useRef(false);
-    const animTimeoutRef = useRef(null);
     const [ready, setReady] = useState(false);
     const [selected, setSelected] = useState(null);
     const [focused, setFocused] = useState(null);
@@ -34,60 +43,108 @@ const StarChart = ({ items }) => {
     const dust = useMemo(() => computeDust(), []);
 
     const clampView = useCallback((v) => {
-        const rect = viewportRef.current.getBoundingClientRect();
-        const scale = Math.min(Math.max(v.scale, fitScaleRef.current), MAX_SCALE);
-        const worldW = WORLD.width * scale;
-        const worldH = WORLD.height * scale;
-        // Lock to centre on an axis where the world is smaller than the
-        // viewport; otherwise keep the world covering the viewport.
-        const x =
-            worldW <= rect.width
-                ? (rect.width - worldW) / 2
-                : Math.min(0, Math.max(rect.width - worldW, v.x));
-        const y =
-            worldH <= rect.height
-                ? (rect.height - worldH) / 2
-                : Math.min(0, Math.max(rect.height - worldH, v.y));
-        return { x, y, scale };
+        const { width, height } = sizeRef.current;
+        const k = Math.min(Math.max(v.k, fitKRef.current), MAX_K);
+        const viewW = width / k;
+        const viewH = height / k;
+        // Centre-lock an axis where the whole world fits; otherwise keep the
+        // visible rect inside the world.
+        const cx =
+            viewW >= WORLD.width
+                ? WORLD.width / 2
+                : Math.min(WORLD.width - viewW / 2, Math.max(viewW / 2, v.cx));
+        const cy =
+            viewH >= WORLD.height
+                ? WORLD.height / 2
+                : Math.min(WORLD.height - viewH / 2, Math.max(viewH / 2, v.cy));
+        return { cx, cy, k };
     }, []);
 
     const applyView = useCallback((v) => {
         viewRef.current = v;
-        worldRef.current.style.transform = `translate3d(${v.x}px, ${v.y}px, 0) scale(${v.scale})`;
+        const { width, height } = sizeRef.current;
+        const viewW = width / v.k;
+        const viewH = height / v.k;
+        svgRef.current.setAttribute(
+            'viewBox',
+            `${v.cx - viewW / 2} ${v.cy - viewH / 2} ${viewW} ${viewH}`
+        );
     }, []);
 
-    const stopAnimation = useCallback(() => {
-        clearTimeout(animTimeoutRef.current);
-        worldRef.current.classList.remove(styles.animating);
+    const stopTween = useCallback(() => {
+        cancelAnimationFrame(tweenRef.current);
+        tweenRef.current = null;
     }, []);
 
-    // Apply a view with the eased CSS transition (a no-op jump cut under
-    // prefers-reduced-motion, where the .animating class has no transition).
+    // Eased camera move (zoom interpolated in log space so it feels linear);
+    // jump cut under prefers-reduced-motion.
     const animateTo = useCallback(
-        (v) => {
-            stopAnimation();
-            worldRef.current.classList.add(styles.animating);
-            applyView(clampView(v));
-            animTimeoutRef.current = setTimeout(() => {
-                worldRef.current.classList.remove(styles.animating);
-            }, 750);
+        (target) => {
+            stopTween();
+            const to = clampView(target);
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                applyView(to);
+                return;
+            }
+            const from = viewRef.current;
+            const logK = Math.log(from.k);
+            const dLogK = Math.log(to.k) - logK;
+            const start = performance.now();
+            const step = (now) => {
+                const t = Math.min((now - start) / TWEEN_MS, 1);
+                const e = easeOutCubic(t);
+                applyView(
+                    clampView({
+                        cx: from.cx + (to.cx - from.cx) * e,
+                        cy: from.cy + (to.cy - from.cy) * e,
+                        k: Math.exp(logK + dLogK * e),
+                    })
+                );
+                tweenRef.current = t < 1 ? requestAnimationFrame(step) : null;
+            };
+            tweenRef.current = requestAnimationFrame(step);
         },
-        [applyView, clampView, stopAnimation]
+        [applyView, clampView, stopTween]
     );
+
+    const focusConstellation = (key) => {
+        const constellation = constellations.find((c) => c.key === key);
+        if (!constellation || constellation.stars.length === 0) return;
+        const xs = constellation.stars.map((s) => s.x).concat(constellation.anchor.x);
+        const ys = constellation.stars.map((s) => s.y).concat(constellation.anchor.y);
+        const minX = Math.min(...xs) - FOCUS_PADDING;
+        const maxX = Math.max(...xs) + FOCUS_PADDING;
+        const minY = Math.min(...ys) - FOCUS_PADDING;
+        const maxY = Math.max(...ys) + FOCUS_PADDING;
+
+        const { width, height } = sizeRef.current;
+        animateTo({
+            cx: (minX + maxX) / 2,
+            cy: (minY + maxY) / 2,
+            k: Math.min(width / (maxX - minX), height / (maxY - minY), FOCUS_MAX_K),
+        });
+        setFocused(key);
+    };
+
+    const resetView = () => {
+        animateTo({ cx: WORLD.width / 2, cy: WORLD.height / 2, k: fitKRef.current });
+        setFocused(null);
+    };
 
     // Initial view (whole sky fitted and centred) + re-clamp on resize.
     useEffect(() => {
-        const setFitScale = () => {
+        const measure = () => {
             const rect = viewportRef.current.getBoundingClientRect();
-            fitScaleRef.current =
+            sizeRef.current = { width: rect.width, height: rect.height };
+            fitKRef.current =
                 Math.min(rect.width / WORLD.width, rect.height / WORLD.height) * 0.95;
         };
-        setFitScale();
-        applyView(clampView({ x: 0, y: 0, scale: fitScaleRef.current }));
+        measure();
+        applyView(clampView({ cx: WORLD.width / 2, cy: WORLD.height / 2, k: fitKRef.current }));
         setReady(true);
 
         const onResize = () => {
-            setFitScale();
+            measure();
             applyView(clampView(viewRef.current));
         };
         window.addEventListener('resize', onResize);
@@ -100,60 +157,27 @@ const StarChart = ({ items }) => {
         const viewport = viewportRef.current;
         const onWheel = (e) => {
             e.preventDefault();
-            stopAnimation();
+            stopTween();
             const v = viewRef.current;
             const rect = viewport.getBoundingClientRect();
-            const cursorX = e.clientX - rect.left;
-            const cursorY = e.clientY - rect.top;
-            const scale = Math.min(
-                Math.max(v.scale * Math.exp(-e.deltaY * 0.0015), fitScaleRef.current),
-                MAX_SCALE
+            const sx = e.clientX - rect.left - rect.width / 2;
+            const sy = e.clientY - rect.top - rect.height / 2;
+            const k = Math.min(
+                Math.max(v.k * Math.exp(-e.deltaY * 0.0015), fitKRef.current),
+                MAX_K
             );
             // Keep the world point under the cursor fixed while scaling.
-            const worldX = (cursorX - v.x) / v.scale;
-            const worldY = (cursorY - v.y) / v.scale;
             applyView(
-                clampView({ scale, x: cursorX - worldX * scale, y: cursorY - worldY * scale })
+                clampView({
+                    k,
+                    cx: v.cx + sx / v.k - sx / k,
+                    cy: v.cy + sy / v.k - sy / k,
+                })
             );
         };
         viewport.addEventListener('wheel', onWheel, { passive: false });
         return () => viewport.removeEventListener('wheel', onWheel);
-    }, [applyView, clampView, stopAnimation]);
-
-    const focusConstellation = (key) => {
-        const constellation = constellations.find((c) => c.key === key);
-        if (!constellation || constellation.stars.length === 0) return;
-        const xs = constellation.stars.map((s) => s.x).concat(constellation.anchor.x);
-        const ys = constellation.stars.map((s) => s.y).concat(constellation.anchor.y);
-        const minX = Math.min(...xs) - FOCUS_PADDING;
-        const maxX = Math.max(...xs) + FOCUS_PADDING;
-        const minY = Math.min(...ys) - FOCUS_PADDING;
-        const maxY = Math.max(...ys) + FOCUS_PADDING;
-
-        const rect = viewportRef.current.getBoundingClientRect();
-        const scale = Math.min(
-            rect.width / (maxX - minX),
-            rect.height / (maxY - minY),
-            FOCUS_MAX_SCALE
-        );
-        animateTo({
-            scale,
-            x: rect.width / 2 - ((minX + maxX) / 2) * scale,
-            y: rect.height / 2 - ((minY + maxY) / 2) * scale,
-        });
-        setFocused(key);
-    };
-
-    const resetView = () => {
-        const rect = viewportRef.current.getBoundingClientRect();
-        const scale = fitScaleRef.current;
-        animateTo({
-            scale,
-            x: (rect.width - WORLD.width * scale) / 2,
-            y: (rect.height - WORLD.height * scale) / 2,
-        });
-        setFocused(null);
-    };
+    }, [applyView, clampView, stopTween]);
 
     // Escape closes the note panel.
     useEffect(() => {
@@ -167,15 +191,15 @@ const StarChart = ({ items }) => {
 
     const onPointerDown = (e) => {
         if (e.pointerType === 'mouse' && e.button !== 0) return;
-        stopAnimation();
+        stopTween();
         suppressClickRef.current = false;
         const v = viewRef.current;
         dragRef.current = {
             pointerId: e.pointerId,
             startX: e.clientX,
             startY: e.clientY,
-            viewX: v.x,
-            viewY: v.y,
+            startCx: v.cx,
+            startCy: v.cy,
             captured: false,
         };
     };
@@ -193,14 +217,8 @@ const StarChart = ({ items }) => {
             viewportRef.current.setPointerCapture(e.pointerId);
             viewportRef.current.classList.add(styles.grabbing);
         }
-        const v = viewRef.current;
-        applyView(
-            clampView({
-                scale: v.scale,
-                x: drag.viewX + dx,
-                y: drag.viewY + dy,
-            })
-        );
+        const { k } = viewRef.current;
+        applyView(clampView({ k, cx: drag.startCx - dx / k, cy: drag.startCy - dy / k }));
     };
 
     const endDrag = (e) => {
@@ -232,43 +250,34 @@ const StarChart = ({ items }) => {
             onPointerCancel={endDrag}
             onClick={onViewportClick}
         >
-            <div
-                ref={worldRef}
-                className={styles.world}
-                style={{
-                    width: WORLD.width,
-                    height: WORLD.height,
-                    visibility: ready ? 'visible' : 'hidden',
-                }}
+            {/* viewBox is set imperatively only — declaring it as a prop would
+                snap the camera back on every React re-render */}
+            <svg
+                ref={svgRef}
+                className={styles.sky}
+                style={{ visibility: ready ? 'visible' : 'hidden' }}
             >
-                <svg
-                    className={styles.sky}
-                    viewBox={`0 0 ${WORLD.width} ${WORLD.height}`}
-                    width={WORLD.width}
-                    height={WORLD.height}
-                >
-                    <g aria-hidden="true">
-                        {dust.map((d) => (
-                            <circle
-                                key={d.id}
-                                className={styles.dust}
-                                cx={d.x}
-                                cy={d.y}
-                                r={d.r}
-                                opacity={d.opacity}
-                            />
-                        ))}
-                    </g>
-                    {constellations.map((constellation) => (
-                        <Constellation
-                            key={constellation.key}
-                            constellation={constellation}
-                            selectedId={selected?.id}
-                            onSelectStar={setSelected}
+                <g aria-hidden="true">
+                    {dust.map((d) => (
+                        <circle
+                            key={d.id}
+                            className={styles.dust}
+                            cx={d.x}
+                            cy={d.y}
+                            r={d.r}
+                            opacity={d.opacity}
                         />
                     ))}
-                </svg>
-            </div>
+                </g>
+                {constellations.map((constellation) => (
+                    <Constellation
+                        key={constellation.key}
+                        constellation={constellation}
+                        selectedId={selected?.id}
+                        onSelectStar={setSelected}
+                    />
+                ))}
+            </svg>
             <ConstellationIndex
                 focused={focused}
                 onFocus={focusConstellation}
