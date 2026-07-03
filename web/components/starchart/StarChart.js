@@ -23,11 +23,8 @@ const OVERVIEW_PADDING = 220;
 // Minimum zoom the camera glides to when a star is selected.
 const SELECT_MIN_K = 0.75;
 // Desktop note panel occupies the right edge; offset the camera centre so
-// the selected star sits centred in the remaining space. Visit items open
-// the place-card covering the right half of the screen, so they need more
-// room — half the card's width.
+// the selected star sits centred in the remaining space.
 const PANEL_CLEARANCE = 210;
-const WIDE_PANEL_FRACTION = 0.25;
 const MOBILE_BREAKPOINT = 767;
 
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
@@ -276,13 +273,9 @@ const StarChart = ({ items }) => {
             const { width, height } = sizeRef.current;
             const k = Math.max(viewRef.current.k, SELECT_MIN_K);
             const isMobile = width <= MOBILE_BREAKPOINT;
-            const clearance =
-                item.category === 'visit' && item.location
-                    ? width * WIDE_PANEL_FRACTION
-                    : PANEL_CLEARANCE;
             animateTo({
                 k,
-                cx: isMobile ? star.x : star.x + clearance / k,
+                cx: isMobile ? star.x : star.x + PANEL_CLEARANCE / k,
                 cy: isMobile ? star.y + (0.2 * height) / k : star.y,
             });
             return;

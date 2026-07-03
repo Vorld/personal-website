@@ -204,6 +204,10 @@
     width: 380px;
     max-width: calc(100% - 64px);
     max-height: calc(100% - 64px);
+    /* flex so the inner column shrinks (instead of clipping) when the
+       card hits max-height — the note scrolls, the map keeps its size */
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     background-color: #1e1e1e;
     border: 1px solid #2c2c2c;
@@ -221,41 +225,22 @@
     pointer-events: auto;
 }
 
+/* One card design for every star; visit items only add the map block
+   below the note. column-reverse keeps the map DOM-first (so one map
+   instance survives prev/next touring) while it reads below the note.
+   When the total exceeds the panel's max-height the note shrinks and
+   scrolls; the map keeps its size. */
 .notePanelInner {
     position: relative;
     display: flex;
-    height: 100%;
-}
-
-/* The visit place-card: the right half of the screen — note on top, the
-   map filling the space below it. */
-.notePanelWide {
-    top: 24px;
-    bottom: 24px;
-    width: calc(50vw - 48px);
-    max-height: none;
-    transform: translateX(12px);
-}
-
-.notePanelWide.notePanelOpen {
-    transform: translateX(0);
-}
-
-/* column-reverse: the map is DOM-first (so one instance survives touring)
-   but reads below the note. */
-.notePanelWide .notePanelInner {
     flex-direction: column-reverse;
-}
-
-.notePanelWide .noteContent {
-    flex: 0 1 auto;
+    min-height: 0;
 }
 
 .noteMap {
     position: relative;
-    flex: 1 1 55%;
+    flex: 0 0 300px;
     min-width: 0;
-    min-height: 260px;
     border-radius: 0 0 10px 10px;
     overflow: hidden;
     background-color: #121212;
@@ -317,8 +302,9 @@
 
 .noteContent {
     position: relative;
-    flex: 1 1 45%;
+    flex: 0 1 auto;
     min-width: 0;
+    min-height: 0;
     padding: 32px 36px 28px;
     overflow-y: auto;
     scrollbar-width: thin;
@@ -499,16 +485,13 @@
         transform: translateY(0);
     }
 
-    /* Place-card bottom sheet: note on top, map below it. */
-    .notePanelWide {
-        width: auto;
+    /* the sheet may grow taller when it carries the map */
+    .notePanel:has(.noteMap) {
         max-height: 75dvh;
     }
 
     .noteMap {
-        flex: 0 0 auto;
-        height: 230px;
-        min-height: 0;
+        flex: 0 0 230px;
         border-radius: 0;
     }
 }

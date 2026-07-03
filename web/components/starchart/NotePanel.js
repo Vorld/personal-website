@@ -10,8 +10,9 @@ const GeoMap = dynamic(() => import('./GeoMap'), {
 });
 
 // Always mounted so the aria-live region exists before a star is chosen;
-// visually shown only when an item is selected. Visit items get the wide
-// variant with the geographic map beside the note.
+// visually shown only when an item is selected. Visit items add the
+// geographic map below the note; everything else about the card is the
+// same for every star.
 const NotePanel = ({ item, groupItems, onSelect, onClose }) => {
     const count = groupItems?.length || 0;
     const index = item && count ? groupItems.findIndex((i) => i.id === item.id) : -1;
@@ -23,9 +24,7 @@ const NotePanel = ({ item, groupItems, onSelect, onClose }) => {
 
     return (
         <aside
-            className={`${styles.notePanel} ${item ? styles.notePanelOpen : ''} ${
-                isPlace ? styles.notePanelWide : ''
-            }`}
+            className={`${styles.notePanel} ${item ? styles.notePanelOpen : ''}`}
             aria-live="polite"
             data-sky-ui
             // Interactions inside the panel must not pan the sky or count as
