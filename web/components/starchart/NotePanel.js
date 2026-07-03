@@ -47,6 +47,7 @@ const NotePanel = ({ item, groupItems, onSelect, onClose }) => {
     const isPlace = Boolean(item?.category === 'visit' && item?.location);
     const placeItems = isPlace ? groupItems.filter((i) => i.location) : null;
     const hasImage = Boolean(!isPlace && item?.image?.url);
+    const completedYear = item?.completedAt?.slice(0, 4);
 
     const image = hasImage && (
         <Image
@@ -107,16 +108,14 @@ const NotePanel = ({ item, groupItems, onSelect, onClose }) => {
                         <p className={styles.noteKicker}>
                             {item.category}
                             {item.subcategory ? ` · ${item.subcategory}` : ''}
-                            {item.done
-                                ? ` · done${
-                                      item.completedAt
-                                          ? ` · ${item.completedAt.slice(0, 4)}`
-                                          : ''
-                                  }`
-                                : ''}
                         </p>
                         <h2 className={styles.noteTitle}>{item.title}</h2>
                         {item.placeName && <p className={styles.notePlace}>{item.placeName}</p>}
+                        {item.done && (
+                            <p className={styles.noteCompleted}>
+                                Completed{completedYear ? ` in ${completedYear}` : ''}
+                            </p>
+                        )}
                         {item.note?.length > 0 && (
                             <div className={styles.noteBody}>
                                 <PortableText value={item.note} components={noteComponents} />

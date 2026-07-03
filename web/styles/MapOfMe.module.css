@@ -212,7 +212,6 @@
     background-color: #1e1e1e;
     border: 1px solid #2c2c2c;
     border-radius: 10px;
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -364,6 +363,13 @@
     margin: 6px 0 0;
     color: #b0b0b0;
     font-size: 0.9rem;
+}
+
+.noteCompleted {
+    margin: 10px 0 0;
+    color: #b0b0b0;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
 }
 
 .noteBody {
