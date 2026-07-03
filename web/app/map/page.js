@@ -3,7 +3,6 @@ import client from '../../client';
 import Header from '../../components/Header';
 import StarChart from '../../components/starchart/StarChart';
 import AspirationList from '../../components/AspirationList';
-import sampleAspirations from '../../data/sampleAspirations';
 
 // Fetch data at the server level
 async function getAspirations() {
@@ -21,10 +20,7 @@ async function getAspirations() {
         completedAt,
         postscript
     }`);
-    // Until real aspiration docs exist in Sanity, keep showing the sample
-    // sky rather than an empty one. Delete this (and data/sampleAspirations)
-    // once the content is in.
-    return aspirations?.length ? aspirations : sampleAspirations;
+    return aspirations || [];
 }
 
 export const metadata = {

@@ -5,6 +5,7 @@ import styles from '../styles/MapOfMe.module.css';
 // for every aspiration and a first-class path for screen readers and
 // keyboard users who would rather skip the interactive sky.
 const AspirationList = ({ items }) => {
+    if (!items?.length) return null;
     return (
         <details className={styles.listFallback}>
             <summary className={styles.listSummary}>Prefer a plain list?</summary>
