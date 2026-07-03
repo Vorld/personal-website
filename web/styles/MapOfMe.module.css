@@ -201,6 +201,8 @@
     max-width: calc(100% - 64px);
     max-height: calc(100% - 64px);
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #3a3a3a transparent;
     background-color: #1e1e1e;
     border: 1px solid #2c2c2c;
     border-radius: 10px;
@@ -228,14 +230,14 @@
     }
 }
 
+/* Fade only — a translate here would overflow the scroll container and
+   flash its scrollbar; the panel itself already slides in via transition. */
 @keyframes noteIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
     }
     to {
         opacity: 1;
-        transform: none;
     }
 }
 
