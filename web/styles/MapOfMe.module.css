@@ -1,0 +1,16 @@
+.viewport {
+    min-height: calc(100dvh - 120px);
+    background-color: #121212;
+    padding: 0 75px 40px;
+}
+
+.skeletonGroup h2 {
+    font-weight: lighter;
+    letter-spacing: 0.2em;
+}
+
+@media screen and (max-width: 767px) {
+    .viewport {
+        padding: 0 30px 40px;
+    }
+}
