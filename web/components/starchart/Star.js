@@ -29,7 +29,12 @@ const Star = ({ star, selected, onSelect }) => {
                 <circle className={styles.starRing} cx={x} cy={y} r={r + 8} aria-hidden="true" />
             )}
             <circle className={styles.starCore} cx={x} cy={y} r={r} />
-            <text className={styles.starLabel} x={x} y={y - r * 3 - 8} textAnchor="middle">
+            <text
+                className={styles.starLabel}
+                y={-16}
+                textAnchor="middle"
+                style={{ transform: `translate(${x}px, ${y}px) scale(var(--inv-k, 1))` }}
+            >
                 {item.title}
             </text>
         </g>

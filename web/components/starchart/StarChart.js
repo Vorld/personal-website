@@ -62,12 +62,25 @@ const StarChart = ({ items }) => {
 
     const applyView = useCallback((v) => {
         viewRef.current = v;
+        const svg = svgRef.current;
         const { width, height } = sizeRef.current;
         const viewW = width / v.k;
         const viewH = height / v.k;
-        svgRef.current.setAttribute(
+        svg.setAttribute(
             'viewBox',
             `${v.cx - viewW / 2} ${v.cy - viewH / 2} ${viewW} ${viewH}`
+        );
+        // Labels counter-scale by 1/k so they render at fixed screen size,
+        // and their visibility follows zoom: star names appear as you move
+        // closer, category names recede once you're inside a constellation.
+        svg.style.setProperty('--inv-k', 1 / v.k);
+        svg.style.setProperty(
+            '--star-label-opacity',
+            Math.min(Math.max((v.k - 0.5) / 0.35, 0), 1) * 0.75
+        );
+        svg.style.setProperty(
+            '--category-label-opacity',
+            0.4 - 0.3 * Math.min(Math.max((v.k - 0.5) / 0.6, 0), 1)
         );
     }, []);
 

@@ -18,7 +18,14 @@ const Constellation = ({ constellation, selectedId, onSelectStar }) => {
                     aria-hidden="true"
                 />
             ))}
-            <text className={styles.categoryLabel} x={anchor.x} y={anchor.y} aria-hidden="true">
+            <text
+                className={styles.categoryLabel}
+                textAnchor="middle"
+                style={{
+                    transform: `translate(${anchor.x}px, ${anchor.y}px) scale(var(--inv-k, 1))`,
+                }}
+                aria-hidden="true"
+            >
                 {label}
             </text>
             {stars.map((star) => (

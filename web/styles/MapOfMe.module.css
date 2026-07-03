@@ -64,12 +64,13 @@
 
 .categoryLabel {
     fill: #e0e0e0;
-    opacity: 0.35;
+    opacity: var(--category-label-opacity, 0.4);
     font-family: var(--font-raleway), sans-serif;
-    font-size: 30px;
+    /* screen pixels — labels are counter-scaled against the zoom */
+    font-size: 13px;
     font-weight: 300;
     letter-spacing: 0.35em;
-    text-anchor: middle;
+    transition: opacity 0.3s ease;
 }
 
 .star {
@@ -102,9 +103,10 @@
 
 .starLabel {
     fill: #e0e0e0;
-    opacity: 0.4;
+    opacity: var(--star-label-opacity, 0);
     font-family: var(--font-roboto), sans-serif;
-    font-size: 14px;
+    /* screen pixels — labels are counter-scaled against the zoom */
+    font-size: 12px;
     letter-spacing: 0.05em;
     transition: opacity 0.25s ease, fill 0.25s ease;
 }
