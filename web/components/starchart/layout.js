@@ -137,17 +137,29 @@ export function computeLayout(items) {
 }
 
 // Decorative background stars from a constant seed — same sky every visit.
-export function computeDust(count = 150) {
+// Two depth layers: "far" pans slower than the camera (parallax), "near"
+// moves with the world.
+export function computeDust() {
     const rand = mulberry32(20260703);
-    const dust = [];
-    for (let i = 0; i < count; i++) {
-        dust.push({
-            id: i,
+    const far = [];
+    for (let i = 0; i < 90; i++) {
+        far.push({
+            id: `far-${i}`,
             x: rand() * WORLD.width,
             y: rand() * WORLD.height,
-            r: 0.5 + rand() * 1.2,
-            opacity: 0.1 + rand() * 0.3,
+            r: 0.4 + rand() * 0.7,
+            opacity: 0.06 + rand() * 0.14,
         });
     }
-    return dust;
+    const near = [];
+    for (let i = 0; i < 70; i++) {
+        near.push({
+            id: `near-${i}`,
+            x: rand() * WORLD.width,
+            y: rand() * WORLD.height,
+            r: 0.8 + rand() * 1.1,
+            opacity: 0.15 + rand() * 0.25,
+        });
+    }
+    return { far, near };
 }

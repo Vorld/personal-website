@@ -26,6 +26,7 @@ const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 const StarChart = ({ items }) => {
     const viewportRef = useRef(null);
     const svgRef = useRef(null);
+    const farDustRef = useRef(null);
     const sizeRef = useRef({ width: 1, height: 1 });
     // Camera: world-coordinates centre + zoom. Source of truth lives here.
     const viewRef = useRef({ cx: WORLD.width / 2, cy: WORLD.height / 2, k: 0.1 });
@@ -73,6 +74,11 @@ const StarChart = ({ items }) => {
         // Labels counter-scale by 1/k so they render at fixed screen size,
         // and their visibility follows zoom: star names appear as you move
         // closer, category names recede once you're inside a constellation.
+        // Far dust follows the camera at half speed — cheap parallax depth.
+        farDustRef.current.setAttribute(
+            'transform',
+            `translate(${(v.cx - WORLD.width / 2) * 0.5} ${(v.cy - WORLD.height / 2) * 0.5})`
+        );
         svg.style.setProperty('--inv-k', 1 / v.k);
         svg.style.setProperty(
             '--star-label-opacity',
@@ -270,8 +276,20 @@ const StarChart = ({ items }) => {
                 className={styles.sky}
                 style={{ visibility: ready ? 'visible' : 'hidden' }}
             >
+                <g ref={farDustRef} aria-hidden="true">
+                    {dust.far.map((d) => (
+                        <circle
+                            key={d.id}
+                            className={styles.dust}
+                            cx={d.x}
+                            cy={d.y}
+                            r={d.r}
+                            opacity={d.opacity}
+                        />
+                    ))}
+                </g>
                 <g aria-hidden="true">
-                    {dust.map((d) => (
+                    {dust.near.map((d) => (
                         <circle
                             key={d.id}
                             className={styles.dust}
