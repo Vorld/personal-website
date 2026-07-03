@@ -328,6 +328,20 @@ const StarChart = ({ items }) => {
         return () => window.removeEventListener('resize', onResize);
     }, [applyView, clampView, overviewTarget]);
 
+    // Deep link: /map?star=<id> arrives on the overview, then glides to
+    // that star with its card open — so posts and photos can point back
+    // at the wish they came from.
+    useEffect(() => {
+        const id = new URLSearchParams(window.location.search).get('star');
+        if (!id) return;
+        const item = items.find((i) => i.id === id);
+        if (!item) return;
+        // After the initial view effect above has measured the viewport.
+        const raf = requestAnimationFrame(() => selectStar(item));
+        return () => cancelAnimationFrame(raf);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // Wheel zoom toward the cursor. Attached natively because the listener
     // must be non-passive to preventDefault page scroll.
     useEffect(() => {
