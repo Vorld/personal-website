@@ -11,6 +11,9 @@ const Star = ({ star, selected, onSelect }) => {
     const { item, x, y, r } = star;
     // Deterministic stagger so the glow pulses aren't in lockstep.
     const pulseDelay = `${(hashString(item.id) % 7000) / 1000}s`;
+    // The label anchors to the star's top edge (sparkles reach 2× the dot
+    // radius), so the screen-pixel gap below it stays clear at any zoom.
+    const topExtent = item.status === 'done' ? r * 2 : r;
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -56,9 +59,11 @@ const Star = ({ star, selected, onSelect }) => {
             )}
             <text
                 className={styles.starLabel}
-                y={-16}
+                y={-10}
                 textAnchor="middle"
-                style={{ transform: `translate(${x}px, ${y}px) scale(var(--inv-k, 1))` }}
+                style={{
+                    transform: `translate(${x}px, ${y - topExtent}px) scale(var(--inv-k, 1))`,
+                }}
             >
                 {item.title}
             </text>
