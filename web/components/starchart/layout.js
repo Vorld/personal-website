@@ -142,13 +142,13 @@ export function computeLayout(items) {
 export function computeDust() {
     const rand = mulberry32(20260703);
     const far = [];
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < 130; i++) {
         far.push({
             id: `far-${i}`,
             x: rand() * WORLD.width,
             y: rand() * WORLD.height,
             r: 0.4 + rand() * 0.7,
-            opacity: 0.06 + rand() * 0.14,
+            opacity: 0.08 + rand() * 0.16,
             twinkle: rand() < 0.45,
             duration: 3 + rand() * 4,
             delay: rand() * 6,

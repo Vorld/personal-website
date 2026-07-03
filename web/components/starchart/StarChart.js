@@ -96,10 +96,11 @@ const StarChart = ({ items }) => {
         // Labels counter-scale by 1/k so they render at fixed screen size,
         // and their visibility follows zoom: star names appear as you move
         // closer, category names recede once you're inside a constellation.
-        // Far dust follows the camera at half speed — cheap parallax depth.
+        // Far dust follows the camera at 70%, so it pans at ~0.3× the speed
+        // of the constellations — parallax depth while dragging.
         farDustRef.current.setAttribute(
             'transform',
-            `translate(${(v.cx - WORLD.width / 2) * 0.5} ${(v.cy - WORLD.height / 2) * 0.5})`
+            `translate(${(v.cx - WORLD.width / 2) * 0.7} ${(v.cy - WORLD.height / 2) * 0.7})`
         );
         svg.style.setProperty('--inv-k', 1 / v.k);
         svg.style.setProperty(
