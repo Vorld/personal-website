@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 import { PortableText } from '@portabletext/react';
 import styles from '../../styles/MapOfMe.module.css';
 
@@ -39,20 +40,45 @@ const noteComponents = {
 // visit items, or the item's image (linked to its photo-gallery lightbox
 // when the same asset is in the gallery).
 const NotePanel = ({ item, groupItems, onSelect, onClose }) => {
-    const count = groupItems?.length || 0;
-    const index = item && count ? groupItems.findIndex((i) => i.id === item.id) : -1;
-    const prev = index >= 0 && count > 1 ? groupItems[(index - 1 + count) % count] : null;
-    const next = index >= 0 && count > 1 ? groupItems[(index + 1) % count] : null;
+    const [renderedItem, setRenderedItem] = useState(item);
+    const [renderedGroupItems, setRenderedGroupItems] = useState(groupItems);
 
-    const isPlace = Boolean(item?.category === 'visit' && item?.location);
-    const placeItems = isPlace ? groupItems.filter((i) => i.location) : null;
-    const hasImage = Boolean(!isPlace && item?.image?.url);
-    const completedYear = item?.completedAt?.slice(0, 4);
+    useEffect(() => {
+        if (item) {
+            const timeout = setTimeout(() => {
+                setRenderedItem(item);
+                setRenderedGroupItems(groupItems);
+            }, 0);
+
+            return () => clearTimeout(timeout);
+        }
+
+        const timeout = setTimeout(() => {
+            setRenderedItem(null);
+            setRenderedGroupItems(null);
+        }, 300);
+
+        return () => clearTimeout(timeout);
+    }, [item, groupItems]);
+
+    const displayItem = item || renderedItem;
+    const displayGroupItems = item ? groupItems : renderedGroupItems;
+
+    const count = displayGroupItems?.length || 0;
+    const index =
+        displayItem && count ? displayGroupItems.findIndex((i) => i.id === displayItem.id) : -1;
+    const prev = index >= 0 && count > 1 ? displayGroupItems[(index - 1 + count) % count] : null;
+    const next = index >= 0 && count > 1 ? displayGroupItems[(index + 1) % count] : null;
+
+    const isPlace = Boolean(displayItem?.category === 'visit' && displayItem?.location);
+    const placeItems = isPlace ? (displayGroupItems || []).filter((i) => i.location) : null;
+    const hasImage = Boolean(!isPlace && displayItem?.image?.url);
+    const completedYear = displayItem?.completedAt?.slice(0, 4);
 
     const image = hasImage && (
         <Image
-            src={item.image.url}
-            alt={item.title}
+            src={displayItem.image.url}
+            alt={displayItem.title}
             fill
             sizes="380px"
             style={{ objectFit: 'cover' }}
@@ -69,25 +95,25 @@ const NotePanel = ({ item, groupItems, onSelect, onClose }) => {
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
         >
-            {item && (
+            {displayItem && (
                 <div className={styles.notePanelInner}>
                     {isPlace && (
                         // Outside the keyed content so the map instance
                         // survives prev/next and flies between places.
-                        <div className={styles.noteMap}>
+                        <div className={`${styles.noteMap} ${styles.noteGeoMap}`}>
                             <GeoMap
                                 items={placeItems}
-                                selectedId={item.id}
+                                selectedId={displayItem.id}
                                 onSelect={onSelect}
                             />
                         </div>
                     )}
                     {hasImage && (
-                        <div className={styles.noteMap} key={`media-${item.id}`}>
-                            {item.photoKey ? (
+                        <div className={styles.noteMap} key={`media-${displayItem.id}`}>
+                            {displayItem.photoKey ? (
                                 <a
                                     className={styles.noteImageLink}
-                                    href={`/photos?photo=${item.photoKey}`}
+                                    href={`/photos?photo=${displayItem.photoKey}`}
                                     aria-label={`See this photo in the gallery`}
                                 >
                                     {image}
@@ -97,7 +123,7 @@ const NotePanel = ({ item, groupItems, onSelect, onClose }) => {
                             )}
                         </div>
                     )}
-                    <div key={item.id} className={styles.noteContent}>
+                    <div key={displayItem.id} className={styles.noteContent}>
                         <button
                             className={styles.noteClose}
                             onClick={onClose}
@@ -106,25 +132,30 @@ const NotePanel = ({ item, groupItems, onSelect, onClose }) => {
                             ×
                         </button>
                         <p className={styles.noteKicker}>
-                            {item.category}
-                            {item.subcategory ? ` · ${item.subcategory}` : ''}
+                            {displayItem.category}
+                            {displayItem.subcategory ? ` · ${displayItem.subcategory}` : ''}
                         </p>
-                        <h2 className={styles.noteTitle}>{item.title}</h2>
-                        {item.placeName && <p className={styles.notePlace}>{item.placeName}</p>}
-                        {item.done && (
+                        <h2 className={styles.noteTitle}>{displayItem.title}</h2>
+                        {displayItem.placeName && (
+                            <p className={styles.notePlace}>{displayItem.placeName}</p>
+                        )}
+                        {displayItem.done && (
                             <p className={styles.noteCompleted}>
                                 Completed{completedYear ? ` in ${completedYear}` : ''}
                             </p>
                         )}
-                        {item.note?.length > 0 && (
+                        {displayItem.note?.length > 0 && (
                             <div className={styles.noteBody}>
-                                <PortableText value={item.note} components={noteComponents} />
+                                <PortableText
+                                    value={displayItem.note}
+                                    components={noteComponents}
+                                />
                             </div>
                         )}
-                        {item.postscript?.length > 0 && (
+                        {displayItem.postscript?.length > 0 && (
                             <div className={styles.notePostscript}>
                                 <PortableText
-                                    value={item.postscript}
+                                    value={displayItem.postscript}
                                     components={noteComponents}
                                 />
                             </div>

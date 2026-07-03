@@ -24,7 +24,7 @@ const OVERVIEW_PADDING = 220;
 const SELECT_MIN_K = 0.75;
 // Desktop note panel occupies the right edge; offset the camera centre so
 // the selected star sits centred in the remaining space.
-const PANEL_CLEARANCE = 210;
+const PANEL_CLEARANCE = 360;
 const MOBILE_BREAKPOINT = 767;
 
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
