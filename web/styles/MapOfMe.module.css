@@ -204,9 +204,7 @@
     width: 380px;
     max-width: calc(100% - 64px);
     max-height: calc(100% - 64px);
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #3a3a3a transparent;
+    overflow: hidden;
     background-color: #1e1e1e;
     border: 1px solid #2c2c2c;
     border-radius: 10px;
@@ -225,11 +223,98 @@
 
 .notePanelInner {
     position: relative;
+    display: flex;
+    height: 100%;
+}
+
+/* The visit place-card: right ~half of the screen, map beside the note. */
+.notePanelWide {
+    top: 24px;
+    bottom: 24px;
+    width: min(48vw, 900px);
+    max-height: none;
+    transform: translateX(12px);
+}
+
+.notePanelWide.notePanelOpen {
+    transform: translateX(0);
+}
+
+.noteMap {
+    position: relative;
+    flex: 1 1 55%;
+    min-width: 0;
+    border-radius: 10px 0 0 10px;
+    overflow: hidden;
+    background-color: #121212;
+}
+
+/* width/height (not inset) because maplibre's stylesheet loads later and
+   overrides position on its container class */
+.geoMap {
+    width: 100%;
+    height: 100%;
+}
+
+.geoLoading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    color: #808080;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+}
+
+/* Keep the required attribution, but on-theme. The doubled selectors
+   out-specify maplibre's own compact-pill rules, which load later. */
+.noteMap :global(.maplibregl-ctrl-attrib),
+.noteMap :global(.maplibregl-ctrl-attrib.maplibregl-compact),
+.noteMap :global(.maplibregl-ctrl-attrib.maplibregl-compact-show) {
+    background-color: rgba(30, 30, 30, 0.85);
+    color: #808080;
+}
+
+.noteMap :global(.maplibregl-ctrl-attrib) a,
+.noteMap :global(.maplibregl-ctrl-attrib.maplibregl-compact) a {
+    color: #b0b0b0;
+}
+
+.noteMap :global(.maplibregl-ctrl-attrib-button) {
+    filter: invert(0.8);
+}
+
+.geoMarker {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    background: radial-gradient(
+        circle,
+        #ffffff 0%,
+        #ffffff 35%,
+        rgba(224, 224, 224, 0.4) 60%,
+        transparent 75%
+    );
+    box-shadow: 0 0 12px 2px rgba(224, 224, 224, 0.3);
+}
+
+.noteContent {
+    position: relative;
+    flex: 1 1 45%;
+    min-width: 0;
     padding: 32px 36px 28px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #3a3a3a transparent;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    .notePanelInner {
+    .noteContent {
         animation: noteIn 0.35s ease;
     }
 }
@@ -349,5 +434,21 @@
 
     .notePanelOpen {
         transform: translateY(0);
+    }
+
+    /* Place-card stacks: map above the note in the bottom sheet. */
+    .notePanelWide {
+        width: auto;
+        max-height: 75dvh;
+    }
+
+    .notePanelWide .notePanelInner {
+        flex-direction: column;
+    }
+
+    .noteMap {
+        flex: 0 0 auto;
+        height: 230px;
+        border-radius: 12px 12px 0 0;
     }
 }
