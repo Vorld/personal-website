@@ -140,6 +140,10 @@ export function computeLayout(items) {
 // Three depth layers, all behind the constellations, each panning at a
 // different fraction of the camera speed (see DUST_LAYERS in StarChart).
 // The constellation plane itself carries no dust — only real aspirations.
+// Dust extends past the world edges so parallax shift and edge overscroll
+// never reveal a bare border.
+const DUST_MARGIN = 600;
+
 export function computeDust() {
     const rand = mulberry32(20260703);
     const layer = (name, count, rMin, rSpread, oMin, oSpread) => {
@@ -147,8 +151,8 @@ export function computeDust() {
         for (let i = 0; i < count; i++) {
             stars.push({
                 id: `${name}-${i}`,
-                x: rand() * WORLD.width,
-                y: rand() * WORLD.height,
+                x: -DUST_MARGIN + rand() * (WORLD.width + 2 * DUST_MARGIN),
+                y: -DUST_MARGIN + rand() * (WORLD.height + 2 * DUST_MARGIN),
                 r: rMin + rand() * rSpread,
                 opacity: oMin + rand() * oSpread,
                 twinkle: rand() < 0.45,
@@ -159,8 +163,8 @@ export function computeDust() {
         return stars;
     };
     return {
-        deep: layer('deep', 70, 0.4, 0.5, 0.06, 0.1),
-        mid: layer('mid', 60, 0.6, 0.6, 0.1, 0.12),
-        close: layer('close', 45, 0.8, 0.9, 0.14, 0.14),
+        deep: layer('deep', 220, 0.4, 0.5, 0.06, 0.1),
+        mid: layer('mid', 160, 0.6, 0.6, 0.1, 0.12),
+        close: layer('close', 100, 0.8, 0.9, 0.14, 0.14),
     };
 }
