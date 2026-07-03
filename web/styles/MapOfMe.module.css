@@ -18,6 +18,25 @@
     height: 100%;
 }
 
+.hint {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    color: #808080;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    white-space: nowrap;
+    pointer-events: none;
+    transition: opacity 1.2s ease;
+    z-index: 3;
+}
+
+.hintHidden {
+    opacity: 0;
+}
+
 /* Constellation index */
 
 .index {

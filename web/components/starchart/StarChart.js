@@ -18,9 +18,8 @@ const TWEEN_MS = 650;
 // How far (world units) the camera may pan past the world bounds — soft
 // edges instead of hard walls.
 const OVERSCROLL = 260;
-// First view: inside the sky between VISIT, LEARN and CONSUME rather than
-// the full fitted overview — wandering outward is the natural first move.
-const INITIAL_VIEW = { cx: 1200, cy: 850, zoom: 1.45 };
+// Padding around the constellation cluster for the overview framing.
+const OVERVIEW_PADDING = 220;
 // Minimum zoom the camera glides to when a star is selected.
 const SELECT_MIN_K = 0.75;
 // Desktop note panel occupies the right edge; offset the camera centre so
@@ -75,9 +74,46 @@ const StarChart = ({ items }) => {
     const [ready, setReady] = useState(false);
     const [selected, setSelected] = useState(null);
     const [focused, setFocused] = useState(null);
+    const [hintDismissed, setHintDismissed] = useState(false);
+
+    const dismissHint = useCallback(() => setHintDismissed(true), []);
 
     const constellations = useMemo(() => computeLayout(items), [items]);
     const dust = useMemo(() => computeDust(), []);
+
+    // Overview framing: the constellation cluster (all six titles readable,
+    // star labels still hidden), not the whole world — the sky continues
+    // past it in every direction, inviting a wander.
+    const overviewBox = useMemo(() => {
+        const xs = [];
+        const ys = [];
+        constellations.forEach((c) => {
+            xs.push(c.anchor.x);
+            ys.push(c.anchor.y);
+            c.stars.forEach((s) => {
+                xs.push(s.x);
+                ys.push(s.y);
+            });
+        });
+        return {
+            minX: Math.min(...xs) - OVERVIEW_PADDING,
+            maxX: Math.max(...xs) + OVERVIEW_PADDING,
+            minY: Math.min(...ys) - OVERVIEW_PADDING,
+            maxY: Math.max(...ys) + OVERVIEW_PADDING,
+        };
+    }, [constellations]);
+
+    const overviewTarget = useCallback(() => {
+        const { width, height } = sizeRef.current;
+        return {
+            cx: (overviewBox.minX + overviewBox.maxX) / 2,
+            cy: (overviewBox.minY + overviewBox.maxY) / 2,
+            k: Math.min(
+                width / (overviewBox.maxX - overviewBox.minX),
+                height / (overviewBox.maxY - overviewBox.minY)
+            ),
+        };
+    }, [overviewBox]);
 
     const clampView = useCallback((v) => {
         const { width, height } = sizeRef.current;
@@ -257,7 +293,7 @@ const StarChart = ({ items }) => {
     };
 
     const resetView = () => {
-        animateTo({ cx: WORLD.width / 2, cy: WORLD.height / 2, k: fitKRef.current });
+        animateTo(overviewTarget());
         setFocused(null);
     };
 
@@ -270,13 +306,7 @@ const StarChart = ({ items }) => {
                 Math.min(rect.width / WORLD.width, rect.height / WORLD.height) * 0.95;
         };
         measure();
-        applyView(
-            clampView({
-                cx: INITIAL_VIEW.cx,
-                cy: INITIAL_VIEW.cy,
-                k: fitKRef.current * INITIAL_VIEW.zoom,
-            })
-        );
+        applyView(clampView(overviewTarget()));
         setReady(true);
 
         const onResize = () => {
@@ -285,7 +315,7 @@ const StarChart = ({ items }) => {
         };
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
-    }, [applyView, clampView]);
+    }, [applyView, clampView, overviewTarget]);
 
     // Wheel zoom toward the cursor. Attached natively because the listener
     // must be non-passive to preventDefault page scroll.
@@ -295,6 +325,7 @@ const StarChart = ({ items }) => {
             e.preventDefault();
             stopTween();
             stopInertia();
+            dismissHint();
             const v = viewRef.current;
             const rect = viewport.getBoundingClientRect();
             const sx = e.clientX - rect.left - rect.width / 2;
@@ -314,7 +345,7 @@ const StarChart = ({ items }) => {
         };
         viewport.addEventListener('wheel', onWheel, { passive: false });
         return () => viewport.removeEventListener('wheel', onWheel);
-    }, [applyView, clampView, stopTween, stopInertia]);
+    }, [applyView, clampView, stopTween, stopInertia, dismissHint]);
 
     // Organic drift: a rAF loop owns per-star offsets (Lissajous-style, all
     // parameters seeded from the item id) and applies them to the star group
@@ -396,6 +427,7 @@ const StarChart = ({ items }) => {
         if (e.pointerType === 'mouse' && e.button !== 0) return;
         stopTween();
         stopInertia();
+        dismissHint();
         suppressClickRef.current = false;
         const v = viewRef.current;
         dragRef.current = {
@@ -498,6 +530,12 @@ const StarChart = ({ items }) => {
                     />
                 ))}
             </svg>
+            <p
+                className={`${styles.hint} ${hintDismissed ? styles.hintHidden : ''}`}
+                aria-hidden="true"
+            >
+                drag to wander · scroll to zoom · wish upon a star
+            </p>
             <ConstellationIndex
                 focused={focused}
                 onFocus={focusConstellation}
