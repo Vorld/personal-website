@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Lightbox from './Lightbox'; // We'll create this next
 import styles from '../styles/Photos.module.css'; // Reuse existing styles for the grid
@@ -12,12 +12,28 @@ const PhotoGallery = ({ images }) => {
     const handleImageClick = (index) => {
         setSelectedImageIndex(index);
         setLightboxOpen(true);
+        // Permalink for the opened photo, so it can be shared and linked
+        // to from elsewhere on the site (e.g. the map's aspiration cards).
+        window.history.replaceState(null, '', `?photo=${images[index].id}`);
     };
 
     const handleCloseLightbox = () => {
         setLightboxOpen(false);
         setSelectedImageIndex(null);
+        window.history.replaceState(null, '', window.location.pathname);
     };
+
+    // /photos?photo=<id> opens the lightbox on that photo. Read on the
+    // client so the page itself stays static.
+    useEffect(() => {
+        const id = new URLSearchParams(window.location.search).get('photo');
+        if (!id) return;
+        const index = images.findIndex((image) => image.id === id);
+        if (index >= 0) {
+            setSelectedImageIndex(index);
+            setLightboxOpen(true);
+        }
+    }, [images]);
 
     // Ensure images is an array before mapping
     if (!Array.isArray(images)) {
