@@ -3,16 +3,18 @@
 // aspiration in the data (later: in Sanity) makes a star appear in a stable
 // spot with no authored coordinates.
 
-export const WORLD = { width: 3000, height: 2000 };
+// The world is deliberately larger than the constellation cluster, so the
+// sky continues past the content and the user can wander into it.
+export const WORLD = { width: 4000, height: 2600 };
 
 // Irregular anchor placement so the sky reads as constellations, not a grid.
 export const CATEGORIES = [
-    { key: 'visit', label: 'VISIT', anchor: { x: 750, y: 550 } },
-    { key: 'learn', label: 'LEARN', anchor: { x: 1900, y: 400 } },
-    { key: 'make', label: 'MAKE', anchor: { x: 2450, y: 1000 } },
-    { key: 'do', label: 'DO', anchor: { x: 600, y: 1450 } },
-    { key: 'consume', label: 'CONSUME', anchor: { x: 1500, y: 1150 } },
-    { key: 'get', label: 'GET', anchor: { x: 2300, y: 1650 } },
+    { key: 'visit', label: 'VISIT', anchor: { x: 1225, y: 825 } },
+    { key: 'learn', label: 'LEARN', anchor: { x: 2375, y: 675 } },
+    { key: 'make', label: 'MAKE', anchor: { x: 2925, y: 1275 } },
+    { key: 'do', label: 'DO', anchor: { x: 1075, y: 1725 } },
+    { key: 'consume', label: 'CONSUME', anchor: { x: 1975, y: 1425 } },
+    { key: 'get', label: 'GET', anchor: { x: 2775, y: 1925 } },
 ];
 
 // djb2
