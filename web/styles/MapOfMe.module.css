@@ -1,16 +1,58 @@
 .viewport {
-    min-height: calc(100dvh - 120px);
-    background-color: #121212;
-    padding: 0 75px 40px;
+    position: relative;
+    height: calc(100dvh - 120px);
+    overflow: hidden;
+    background: radial-gradient(ellipse at 50% 40%, #161624 0%, #121212 65%);
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
 }
 
-.skeletonGroup h2 {
-    font-weight: lighter;
-    letter-spacing: 0.2em;
+.world {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    will-change: transform;
 }
 
-@media screen and (max-width: 767px) {
-    .viewport {
-        padding: 0 30px 40px;
-    }
+.sky {
+    display: block;
+}
+
+.dust {
+    fill: #e0e0e0;
+}
+
+.edge {
+    stroke: #e0e0e0;
+    stroke-opacity: 0.12;
+    stroke-width: 1;
+}
+
+.categoryLabel {
+    fill: #e0e0e0;
+    opacity: 0.35;
+    font-family: var(--font-raleway), sans-serif;
+    font-size: 30px;
+    font-weight: 300;
+    letter-spacing: 0.35em;
+    text-anchor: middle;
+}
+
+.starGlow {
+    fill: #e0e0e0;
+    opacity: 0.08;
+}
+
+.starCore {
+    fill: #e0e0e0;
+}
+
+.starLabel {
+    fill: #e0e0e0;
+    opacity: 0.4;
+    font-family: var(--font-roboto), sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.05em;
 }
