@@ -1,3 +1,5 @@
+const hasCoordinate = (value) => typeof value === 'number' && Number.isFinite(value);
+
 export default {
     name: 'aspiration',
     title: 'Aspiration',
@@ -64,14 +66,37 @@ export default {
         {
             name: 'location',
             title: 'Location',
-            type: 'geopoint',
+            description: 'Latitude and longitude in decimal degrees, WGS 84.',
+            type: 'object',
             hidden: ({ document }) => document?.category !== 'visit',
+            fields: [
+                {
+                    name: 'lat',
+                    title: 'Latitude',
+                    description: 'Decimal degrees. South is negative; north is positive.',
+                    type: 'number',
+                    validation: (Rule) => Rule.required().min(-90).max(90),
+                },
+                {
+                    name: 'lng',
+                    title: 'Longitude',
+                    description: 'Decimal degrees. West is negative; east is positive.',
+                    type: 'number',
+                    validation: (Rule) => Rule.required().min(-180).max(180),
+                },
+            ],
             // Visit stars open a card with the place on a map, so the
             // coordinates are not optional for them.
             validation: (Rule) =>
                 Rule.custom((location, context) => {
                     if (context.document?.category === 'visit' && !location) {
                         return 'Visit aspirations need a location for the place map.';
+                    }
+                    if (
+                        context.document?.category === 'visit' &&
+                        (!hasCoordinate(location?.lat) || !hasCoordinate(location?.lng))
+                    ) {
+                        return 'Visit aspirations need both latitude and longitude.';
                     }
                     return true;
                 }),
