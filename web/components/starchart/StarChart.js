@@ -15,6 +15,12 @@ const FOCUS_MAX_K = 1.1;
 const FOCUS_PADDING = 140;
 const DRAG_THRESHOLD = 5;
 const TWEEN_MS = 650;
+// Minimum zoom the camera glides to when a star is selected.
+const SELECT_MIN_K = 0.75;
+// Desktop note panel occupies the right edge; offset the camera centre so
+// the selected star sits centred in the remaining space.
+const PANEL_CLEARANCE = 210;
+const MOBILE_BREAKPOINT = 767;
 
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
@@ -186,6 +192,25 @@ const StarChart = ({ items }) => {
         stopTween();
         stopInertia();
     }, [stopTween, stopInertia]);
+
+    // Selecting a star opens its note and glides the camera to frame the
+    // star next to the panel (desktop) or above the bottom sheet (mobile).
+    const selectStar = (item) => {
+        setSelected(item);
+        for (const constellation of constellations) {
+            const star = constellation.stars.find((s) => s.item.id === item.id);
+            if (!star) continue;
+            const { width, height } = sizeRef.current;
+            const k = Math.max(viewRef.current.k, SELECT_MIN_K);
+            const isMobile = width <= MOBILE_BREAKPOINT;
+            animateTo({
+                k,
+                cx: isMobile ? star.x : star.x + PANEL_CLEARANCE / k,
+                cy: isMobile ? star.y + (0.2 * height) / k : star.y,
+            });
+            return;
+        }
+    };
 
     const focusConstellation = (key) => {
         const constellation = constellations.find((c) => c.key === key);
@@ -365,7 +390,7 @@ const StarChart = ({ items }) => {
                         key={constellation.key}
                         constellation={constellation}
                         selectedId={selected?.id}
-                        onSelectStar={setSelected}
+                        onSelectStar={selectStar}
                     />
                 ))}
             </svg>
@@ -374,7 +399,18 @@ const StarChart = ({ items }) => {
                 onFocus={focusConstellation}
                 onReset={resetView}
             />
-            <NotePanel item={selected} onClose={() => setSelected(null)} />
+            <NotePanel
+                item={selected}
+                groupItems={
+                    selected
+                        ? constellations
+                              .find((c) => c.key === selected.category)
+                              ?.stars.map((s) => s.item)
+                        : null
+                }
+                onSelect={selectStar}
+                onClose={() => setSelected(null)}
+            />
         </section>
     );
 };
