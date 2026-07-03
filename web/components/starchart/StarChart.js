@@ -15,6 +15,8 @@ const FOCUS_MAX_K = 1.1;
 const FOCUS_PADDING = 140;
 const DRAG_THRESHOLD = 5;
 const TWEEN_MS = 650;
+const WHEEL_ZOOM_EASE = 0.32;
+const WHEEL_ZOOM_SETTLE = 0.001;
 // How far (world units) the camera may pan past the world bounds — soft
 // edges instead of hard walls.
 const OVERSCROLL = 260;
@@ -68,6 +70,14 @@ const StarChart = ({ items }) => {
     const fitKRef = useRef(0.1);
     const dragRef = useRef(null);
     const tweenRef = useRef(null);
+    const wheelRef = useRef({
+        flushFrame: null,
+        animFrame: null,
+        deltaY: 0,
+        clientX: 0,
+        clientY: 0,
+        target: null,
+    });
     // Set when a real pan just ended, so the click that follows it doesn't
     // clear the selected star.
     const suppressClickRef = useRef(false);
@@ -194,11 +204,22 @@ const StarChart = ({ items }) => {
         tweenRef.current = null;
     }, []);
 
+    const stopWheelZoom = useCallback(() => {
+        const wheel = wheelRef.current;
+        cancelAnimationFrame(wheel.flushFrame);
+        cancelAnimationFrame(wheel.animFrame);
+        wheel.flushFrame = null;
+        wheel.animFrame = null;
+        wheel.deltaY = 0;
+        wheel.target = null;
+    }, []);
+
     // Glide on after a flick: velocity in screen px/ms, exponential friction.
     const startInertia = useCallback(
         (vx, vy) => {
             if (Math.hypot(vx, vy) < 0.05) return;
             if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            stopWheelZoom();
             stopInertia();
             let lastTime = performance.now();
             let cvx = vx;
@@ -222,7 +243,7 @@ const StarChart = ({ items }) => {
             };
             inertiaRef.current = requestAnimationFrame(step);
         },
-        [applyView, clampView, stopInertia]
+        [applyView, clampView, stopWheelZoom, stopInertia]
     );
 
     // Eased camera move (zoom interpolated in log space so it feels linear);
@@ -230,6 +251,7 @@ const StarChart = ({ items }) => {
     const animateTo = useCallback(
         (target) => {
             stopTween();
+            stopWheelZoom();
             stopInertia();
             const to = clampView(target);
             if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -254,14 +276,15 @@ const StarChart = ({ items }) => {
             };
             tweenRef.current = requestAnimationFrame(step);
         },
-        [applyView, clampView, stopTween, stopInertia]
+        [applyView, clampView, stopTween, stopWheelZoom, stopInertia]
     );
 
     // Cancel any in-flight animation frames on unmount.
     useEffect(() => () => {
         stopTween();
+        stopWheelZoom();
         stopInertia();
-    }, [stopTween, stopInertia]);
+    }, [stopTween, stopWheelZoom, stopInertia]);
 
     // Selecting a star opens its note and glides the camera to frame the
     // star next to the panel (desktop) or above the bottom sheet (mobile).
@@ -346,6 +369,66 @@ const StarChart = ({ items }) => {
     // must be non-passive to preventDefault page scroll.
     useEffect(() => {
         const viewport = viewportRef.current;
+        const pendingWheel = wheelRef.current;
+        const flushWheelZoom = () => {
+            pendingWheel.flushFrame = null;
+            const deltaY = pendingWheel.deltaY;
+            pendingWheel.deltaY = 0;
+            if (!deltaY) return;
+
+            const v = pendingWheel.target || viewRef.current;
+            const rect = viewport.getBoundingClientRect();
+            const sx = pendingWheel.clientX - rect.left - rect.width / 2;
+            const sy = pendingWheel.clientY - rect.top - rect.height / 2;
+            const k = Math.min(
+                Math.max(v.k * Math.exp(-deltaY * 0.0015), fitKRef.current),
+                MAX_K
+            );
+            pendingWheel.target = clampView({
+                k,
+                cx: v.cx + sx / v.k - sx / k,
+                cy: v.cy + sy / v.k - sy / k,
+            });
+
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                applyView(pendingWheel.target);
+                pendingWheel.target = null;
+                return;
+            }
+
+            if (pendingWheel.animFrame != null) return;
+
+            const step = () => {
+                const target = pendingWheel.target;
+                if (!target) {
+                    pendingWheel.animFrame = null;
+                    return;
+                }
+                const current = viewRef.current;
+                const next = clampView({
+                    cx: current.cx + (target.cx - current.cx) * WHEEL_ZOOM_EASE,
+                    cy: current.cy + (target.cy - current.cy) * WHEEL_ZOOM_EASE,
+                    k: Math.exp(
+                        Math.log(current.k) +
+                            (Math.log(target.k) - Math.log(current.k)) * WHEEL_ZOOM_EASE
+                    ),
+                });
+                const settled =
+                    Math.abs(next.cx - target.cx) < 0.5 &&
+                    Math.abs(next.cy - target.cy) < 0.5 &&
+                    Math.abs(Math.log(next.k / target.k)) < WHEEL_ZOOM_SETTLE;
+                applyView(settled ? target : next);
+                if (settled) {
+                    pendingWheel.target = null;
+                    pendingWheel.animFrame = null;
+                    return;
+                }
+                pendingWheel.animFrame = requestAnimationFrame(step);
+            };
+
+            pendingWheel.animFrame = requestAnimationFrame(step);
+        };
+
         const onWheel = (e) => {
             // Wheel inside UI layers (note panel, its embedded map, index)
             // belongs to them — scrolling a note must not zoom the sky.
@@ -354,25 +437,26 @@ const StarChart = ({ items }) => {
             stopTween();
             stopInertia();
             dismissHint();
-            const v = viewRef.current;
-            const rect = viewport.getBoundingClientRect();
-            const sx = e.clientX - rect.left - rect.width / 2;
-            const sy = e.clientY - rect.top - rect.height / 2;
-            const k = Math.min(
-                Math.max(v.k * Math.exp(-e.deltaY * 0.0015), fitKRef.current),
-                MAX_K
-            );
-            // Keep the world point under the cursor fixed while scaling.
-            applyView(
-                clampView({
-                    k,
-                    cx: v.cx + sx / v.k - sx / k,
-                    cy: v.cy + sy / v.k - sy / k,
-                })
-            );
+
+            pendingWheel.deltaY += e.deltaY;
+            pendingWheel.clientX = e.clientX;
+            pendingWheel.clientY = e.clientY;
+            if (pendingWheel.flushFrame == null) {
+                pendingWheel.flushFrame = requestAnimationFrame(flushWheelZoom);
+            }
         };
         viewport.addEventListener('wheel', onWheel, { passive: false });
-        return () => viewport.removeEventListener('wheel', onWheel);
+        return () => {
+            viewport.removeEventListener('wheel', onWheel);
+            if (pendingWheel.flushFrame != null) {
+                cancelAnimationFrame(pendingWheel.flushFrame);
+                pendingWheel.flushFrame = null;
+            }
+            if (pendingWheel.animFrame != null) {
+                cancelAnimationFrame(pendingWheel.animFrame);
+                pendingWheel.animFrame = null;
+            }
+        };
     }, [applyView, clampView, stopTween, stopInertia, dismissHint]);
 
     // Organic drift: a rAF loop owns per-star offsets (Lissajous-style, all
@@ -460,6 +544,7 @@ const StarChart = ({ items }) => {
         if (e.pointerType === 'mouse' && e.button !== 0) return;
         stopTween();
         stopInertia();
+        stopWheelZoom();
         dismissHint();
         suppressClickRef.current = false;
         const v = viewRef.current;
