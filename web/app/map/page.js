@@ -24,8 +24,8 @@ async function getAspirations() {
 }
 
 export const metadata = {
-    title: 'Map of Me',
-    description: 'A star chart of things I want to see, learn, make, and do.',
+    title: 'Map',
+    description: 'A map of the things I want to see, learn, make, and do.',
 };
 
 // Revalidate data every 10 seconds
@@ -36,7 +36,7 @@ const MapPage = async () => {
 
     return (
         <div>
-            <Header heading={'MAP OF ME'} />
+            <Header heading={'MAP'} />
             <StarChart items={aspirations} />
             <AspirationList items={aspirations} />
         </div>

@@ -572,7 +572,7 @@ const StarChart = ({ items }) => {
                 }`}
                 aria-hidden="true"
             >
-                drag to wander · scroll to zoom · wish upon a star
+                Drag to wander · Scroll to zoom · Click to wish upon a star
             </p>
             <ConstellationIndex
                 focused={focused}

@@ -1,4 +1,4 @@
-// Pure layout math for the star chart — no React.
+// Pure layout math for the star chart.
 // Positions are derived deterministically from item ids, so adding an
 // aspiration in the data (later: in Sanity) makes a star appear in a stable
 // spot with no authored coordinates.
@@ -165,8 +165,8 @@ export function computeDust() {
         return stars;
     };
     return {
-        deep: layer('deep', 220, 0.4, 0.5, 0.06, 0.1),
-        mid: layer('mid', 160, 0.6, 0.6, 0.1, 0.12),
+        deep: layer('deep', 600, 0.4, 0.5, 0.06, 0.1),
+        mid: layer('mid', 300, 0.6, 0.6, 0.1, 0.12),
         close: layer('close', 100, 0.8, 0.9, 0.14, 0.14),
     };
 }
