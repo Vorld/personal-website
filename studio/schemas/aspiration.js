@@ -44,8 +44,16 @@ export default {
         {
             name: 'note',
             title: 'Why I want this',
-            type: 'text',
-            rows: 4,
+            type: 'blockContent',
+        },
+        {
+            name: 'image',
+            title: 'Image',
+            description:
+                'Shown below the note. If the same asset is in the photo ' +
+                'gallery, the card links it to that photo on /photos.',
+            type: 'image',
+            options: { hotspot: true },
         },
         {
             name: 'placeName',
@@ -92,8 +100,7 @@ export default {
             name: 'postscript',
             title: 'Postscript',
             description: 'A line about how it actually went.',
-            type: 'text',
-            rows: 2,
+            type: 'blockContent',
             hidden: ({ document }) => !document?.done,
         },
     ],

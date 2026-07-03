@@ -374,6 +374,31 @@
     color: #e0e0e0;
 }
 
+.noteBody p {
+    margin: 0 0 12px;
+}
+
+.noteBody p:last-child {
+    margin-bottom: 0;
+}
+
+.noteLink {
+    color: #ffffff;
+    text-decoration: underline;
+    text-decoration-color: #555555;
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.2s ease;
+}
+
+.noteLink:hover {
+    text-decoration-color: #e0e0e0;
+}
+
+.noteImageLink {
+    display: block;
+    height: 100%;
+}
+
 .notePostscript {
     margin: 14px 0 0;
     font-family: var(--font-literata), serif;
@@ -381,6 +406,19 @@
     font-size: 0.9rem;
     line-height: 1.6;
     color: #b0b0b0;
+}
+
+.notePostscript p {
+    margin: 0 0 8px;
+}
+
+.notePostscript p:last-child {
+    margin-bottom: 0;
+}
+
+/* the postscript keeps its spoken-aside dash */
+.notePostscript p:first-child::before {
+    content: '— ';
 }
 
 .noteNav {

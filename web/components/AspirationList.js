@@ -29,9 +29,11 @@ const AspirationList = ({ items }) => {
                                               }`
                                             : ''}
                                     </p>
-                                    {item.note && <p className={styles.listItemNote}>{item.note}</p>}
-                                    {item.postscript && (
-                                        <p className={styles.listItemNote}>— {item.postscript}</p>
+                                    {item.noteText && (
+                                        <p className={styles.listItemNote}>{item.noteText}</p>
+                                    )}
+                                    {item.postscriptText && (
+                                        <p className={styles.listItemNote}>— {item.postscriptText}</p>
                                     )}
                                 </li>
                             ))}
