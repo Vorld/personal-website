@@ -169,8 +169,8 @@ export function computeDust() {
         return stars;
     };
     return {
-        deep: layer('deep', 600, 0.4, 0.5, 0.3, 0.1),
-        mid: layer('mid', 300, 0.6, 0.6, 0.4, 0.12),
+        deep: layer('deep', 400, 0.4, 0.5, 0.3, 0.1),
+        mid: layer('mid', 200, 0.6, 0.6, 0.4, 0.12),
         close: layer('close', 100, 0.8, 0.9, 0.55, 0.14),
 
         // deep: layer('deep', 600, 0.4, 0.5, 0.06, 0.1),
