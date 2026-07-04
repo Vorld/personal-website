@@ -14,6 +14,10 @@ const MAX_K = 1.75;
 const FOCUS_MAX_K = 1.1;
 const FOCUS_PADDING = 140;
 const DRAG_THRESHOLD = 5;
+// Touch fingers jitter more than a mouse, so a tap can drift a few pixels;
+// require a little more travel before it becomes a pan, or star taps get
+// swallowed by an accidental drag.
+const TOUCH_DRAG_THRESHOLD = 10;
 const TWEEN_MS = 650;
 const WHEEL_ZOOM_EASE = 0.32;
 const WHEEL_ZOOM_SETTLE = 0.001;
@@ -69,6 +73,10 @@ const StarChart = ({ aspirations }) => {
     const viewRef = useRef({ cx: WORLD.width / 2, cy: WORLD.height / 2, k: 0.1 });
     const fitKRef = useRef(0.1);
     const dragRef = useRef(null);
+    // Every active pointer (id -> client coords). Touch has no wheel to zoom
+    // with, so we watch for a second finger and drive a pinch from these.
+    const pointersRef = useRef(new Map());
+    const pinchRef = useRef(null);
     const tweenRef = useRef(null);
     const wheelRef = useRef({
         flushFrame: null,
@@ -540,16 +548,72 @@ const StarChart = ({ aspirations }) => {
         return () => window.removeEventListener('keydown', onKeyDown);
     }, [selected]);
 
+    // Two-finger midpoint (relative to the viewport centre) + finger spread.
+    const pinchGeometry = (pts, rect) => ({
+        x: (pts[0].x + pts[1].x) / 2 - rect.left - rect.width / 2,
+        y: (pts[0].y + pts[1].y) / 2 - rect.top - rect.height / 2,
+        dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
+    });
+
+    const beginPinch = () => {
+        dragRef.current = null;
+        stopInertia();
+        const rect = viewportRef.current.getBoundingClientRect();
+        const g = pinchGeometry([...pointersRef.current.values()], rect);
+        const v = viewRef.current;
+        // Anchor the world point currently under the midpoint; we keep it
+        // pinned there while the fingers scale and slide (zoom + pan in one).
+        pinchRef.current = {
+            startDist: g.dist,
+            startK: v.k,
+            worldX: v.cx + g.x / v.k,
+            worldY: v.cy + g.y / v.k,
+        };
+        viewportRef.current.classList.add(styles.grabbing);
+        for (const id of pointersRef.current.keys()) {
+            viewportRef.current.setPointerCapture(id);
+        }
+    };
+
+    const updatePinch = () => {
+        const pinch = pinchRef.current;
+        const pts = [...pointersRef.current.values()];
+        if (!pinch || pts.length < 2) return;
+        const rect = viewportRef.current.getBoundingClientRect();
+        const g = pinchGeometry(pts, rect);
+        const k = Math.min(
+            Math.max(pinch.startK * (g.dist / pinch.startDist), fitKRef.current),
+            MAX_K
+        );
+        applyView(
+            clampView({ k, cx: pinch.worldX - g.x / k, cy: pinch.worldY - g.y / k })
+        );
+    };
+
     const onPointerDown = (e) => {
         if (e.pointerType === 'mouse' && e.button !== 0) return;
+        // A touch that starts on a UI layer (index, card) belongs to it —
+        // it must not pan or pinch the sky underneath.
+        if (e.target.closest?.('[data-sky-ui]')) return;
         stopTween();
         stopInertia();
         stopWheelZoom();
         dismissHint();
+        pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        if (pointersRef.current.size === 2) {
+            // Second finger down: this is a pinch, never a tap.
+            suppressClickRef.current = true;
+            beginPinch();
+            return;
+        }
+        if (pointersRef.current.size > 2) return;
+
         suppressClickRef.current = false;
         const v = viewRef.current;
         dragRef.current = {
             pointerId: e.pointerId,
+            touch: e.pointerType !== 'mouse',
             startX: e.clientX,
             startY: e.clientY,
             startCx: v.cx,
@@ -559,14 +623,25 @@ const StarChart = ({ aspirations }) => {
     };
 
     const onPointerMove = (e) => {
+        const pointer = pointersRef.current.get(e.pointerId);
+        if (pointer) {
+            pointer.x = e.clientX;
+            pointer.y = e.clientY;
+        }
+        if (pinchRef.current) {
+            updatePinch();
+            return;
+        }
+
         const drag = dragRef.current;
         if (!drag || e.pointerId !== drag.pointerId) return;
         const dx = e.clientX - drag.startX;
         const dy = e.clientY - drag.startY;
         // Capture only once this is clearly a pan — capturing on pointerdown
-        // would retarget the pointerup and swallow star clicks.
+        // would retarget the pointerup and swallow star taps.
         if (!drag.captured) {
-            if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+            const threshold = drag.touch ? TOUCH_DRAG_THRESHOLD : DRAG_THRESHOLD;
+            if (Math.hypot(dx, dy) < threshold) return;
             drag.captured = true;
             viewportRef.current.setPointerCapture(e.pointerId);
             viewportRef.current.classList.add(styles.grabbing);
@@ -592,9 +667,37 @@ const StarChart = ({ aspirations }) => {
     };
 
     const endDrag = (e) => {
+        pointersRef.current.delete(e.pointerId);
+
+        if (pinchRef.current) {
+            if (pointersRef.current.size >= 2) return;
+            // Lifting one of two fingers ends the pinch. If a finger remains,
+            // hand off to a single-finger pan from its current spot so the
+            // sky doesn't jump.
+            pinchRef.current = null;
+            suppressClickRef.current = true;
+            const remaining = pointersRef.current.entries().next().value;
+            if (remaining) {
+                const [pointerId, pt] = remaining;
+                const v = viewRef.current;
+                dragRef.current = {
+                    pointerId,
+                    touch: true,
+                    startX: pt.x,
+                    startY: pt.y,
+                    startCx: v.cx,
+                    startCy: v.cy,
+                    captured: true,
+                };
+            } else {
+                viewportRef.current.classList.remove(styles.grabbing);
+            }
+            return;
+        }
+
         const drag = dragRef.current;
         if (drag && e.pointerId === drag.pointerId) {
-            suppressClickRef.current = drag.captured;
+            suppressClickRef.current = suppressClickRef.current || drag.captured;
             dragRef.current = null;
             viewportRef.current.classList.remove(styles.grabbing);
             if (drag.captured) startInertia(drag.vx || 0, drag.vy || 0);
@@ -664,7 +767,14 @@ const StarChart = ({ aspirations }) => {
                 }`}
                 aria-hidden="true"
             >
-                Drag to wander · Scroll to zoom · Click to wish upon a star
+                {/* Copy follows the pointer type via CSS (see .hintFine /
+                    .hintCoarse) — no JS, no hydration flash. */}
+                <span className={styles.hintFine}>
+                    Drag to wander · Scroll to zoom · Click to wish upon a star
+                </span>
+                <span className={styles.hintCoarse}>
+                    Drag to wander · Pinch to zoom · Tap to wish upon a star
+                </span>
             </p>
             <ConstellationIndex
                 focused={focused}

@@ -37,6 +37,22 @@
     opacity: 0;
 }
 
+/* Hint copy adapts to the pointer type: mouse gets scroll/click, touch gets
+   pinch/tap. Pure CSS so there's no hydration flash. */
+.hintCoarse {
+    display: none;
+}
+
+@media (pointer: coarse) {
+    .hintFine {
+        display: none;
+    }
+
+    .hintCoarse {
+        display: inline;
+    }
+}
+
 /* Constellation index */
 
 .index {
@@ -519,10 +535,18 @@
 }
 
 @media screen and (max-width: 767px) {
-    /* Tighter corner inset on narrow screens; bottom aligns with the hint. */
+    /* Phones lean on free pan/pinch to explore, so the constellation index is
+       dropped to keep the sky uncluttered; the gesture hint stays to orient
+       first-timers. */
     .index {
-        left: 24px;
-        bottom: 28px;
+        display: none;
+    }
+
+    /* The hint may not fit one line on a narrow phone — let it wrap, centred. */
+    .hint {
+        white-space: normal;
+        text-align: center;
+        max-width: calc(100% - 48px);
     }
 
     .card {
