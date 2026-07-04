@@ -206,17 +206,29 @@
 
 @media only screen and (max-width: 767px) {
   .landing {
-    min-height: 100lvh; 
-    height: 100lvh;    
+    min-height: 100vh;
+    min-height: 100dvh; 
+    height: 100vh;
+    height: 100dvh;    
     box-sizing: border-box; /* Ensure padding/border don't add to height */
   }
 
   .para {
     letter-spacing: 0.005em;
     padding: 0% 10% 0% 10%;
-    min-height: 100lvh; 
-    height: 100lvh;     
+    min-height: 100vh;
+    min-height: 100dvh; 
+    height: 100vh;
+    height: 100dvh;     
     box-sizing: border-box; /* Ensure padding/border don't add to height */
+  }
+
+  .section1 {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    justify-content: flex-start;
+    padding-block: clamp(3rem, 8dvh, 5rem);
   }
   
   .socialIcons {
@@ -245,8 +257,9 @@
   
   .authorText {
     width: 100%;
+    max-height: none;
+    overflow-y: visible;
     /* text-align and align-items removed for mobile, rely on parent's align-items:center */
     /* and its own justify-content: center if needed, though for column it might not be the primary effect */
   }
 }
-
