@@ -98,6 +98,11 @@ const NavbarContent = (props) => {
                         </Link>
                     </li>
                     <li>
+                        <Link href='/map' onClick={() => handleClick()} className={styles['nav-link']}>
+                            MAP
+                        </Link>
+                    </li>
+                    <li>
                         <Link href='/photos' onClick={() => handleClick()} className={styles['nav-link']}>
                             PHOTOS
                         </Link>

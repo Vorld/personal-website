@@ -1,0 +1,537 @@
+.viewport {
+    position: relative;
+    height: calc(100dvh - 120px);
+    overflow: hidden;
+    background-color: #121212;
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+}
+
+.grabbing {
+    cursor: grabbing;
+}
+
+.sky {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.hint {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    color: #808080;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    white-space: nowrap;
+    pointer-events: none;
+    transition: opacity 1.2s ease;
+    z-index: 3;
+}
+
+.hintHidden {
+    opacity: 0;
+}
+
+/* Hint copy adapts to the pointer type: mouse gets scroll/click, touch gets
+   pinch/tap. Pure CSS so there's no hydration flash. */
+.hintCoarse {
+    display: none;
+}
+
+@media (pointer: coarse) {
+    .hintFine {
+        display: none;
+    }
+
+    .hintCoarse {
+        display: inline;
+    }
+}
+
+/* Constellation index */
+
+.index {
+    position: absolute;
+    /* Rest in the bottom-left corner with a matched inset from both edges,
+       so it reads as intentionally placed rather than floating mid-air. */
+    left: 40px;
+    bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    z-index: 3;
+}
+
+.indexItem {
+    background: none;
+    border: none;
+    padding: 4px 0;
+    color: #808080;
+    font-family: var(--font-roboto), sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    cursor: pointer;
+    transition: color 0.25s ease;
+}
+
+.indexItem:hover {
+    color: #e0e0e0;
+}
+
+.indexActive {
+    color: #ffffff;
+}
+
+.dust {
+    fill: #e0e0e0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .twinkle {
+        animation: twinkle var(--twinkle-duration, 4s) ease-in-out infinite;
+        animation-delay: var(--twinkle-delay, 0s);
+    }
+
+    .starGlow {
+        animation: glowPulse 7s ease-in-out infinite;
+    }
+
+    /* let the hover/selected bloom win over the idle pulse */
+    .star:hover .starGlow,
+    .star:focus-visible .starGlow,
+    .starSelected .starGlow {
+        animation: none;
+    }
+}
+
+@keyframes twinkle {
+    0%,
+    100% {
+        opacity: var(--o, 0.3);
+    }
+    50% {
+        opacity: calc(var(--o, 0.3) * 0.25);
+    }
+}
+
+@keyframes glowPulse {
+    0%,
+    100% {
+        opacity: 0.18;
+    }
+    50% {
+        opacity: 0.34;
+    }
+}
+
+.edge {
+    stroke: #e0e0e0;
+    stroke-opacity: 0.12;
+    stroke-width: 1;
+}
+
+.categoryLabel {
+    fill: #e0e0e0;
+    opacity: var(--category-label-opacity, 0.4);
+    font-family: var(--font-raleway), sans-serif;
+    /* screen pixels — labels are counter-scaled against the zoom */
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 0.35em;
+    transition: opacity 0.3s ease;
+}
+
+.star {
+    cursor: pointer;
+    outline: none;
+}
+
+/* Positional drift is driven from JS (StarChart's drift loop) so the
+   constellation lines move together with their stars. */
+
+.starHit {
+    fill: transparent;
+    pointer-events: all;
+}
+
+/* fill comes from the radial gradient in the SVG defs */
+.starGlow {
+    opacity: 0.18;
+    transition: opacity 0.25s ease;
+}
+
+.starCore {
+    fill: #e0e0e0;
+    transition: fill 0.25s ease;
+}
+
+.starSparkle {
+    fill: #ffffff;
+}
+
+.starRing {
+    fill: none;
+    stroke: #e0e0e0;
+    stroke-width: 1;
+    stroke-opacity: 0.6;
+}
+
+.starLabel {
+    fill: #e0e0e0;
+    opacity: var(--star-label-opacity, 0);
+    font-family: var(--font-roboto), sans-serif;
+    /* screen pixels — labels are counter-scaled against the zoom */
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    transition: opacity 0.25s ease, fill 0.25s ease;
+}
+
+.star:hover .starCore,
+.star:focus-visible .starCore,
+.starSelected .starCore {
+    fill: #ffffff;
+}
+
+.star:hover .starLabel,
+.star:focus-visible .starLabel,
+.starSelected .starLabel {
+    opacity: 1;
+    fill: #ffffff;
+}
+
+.star:hover .starGlow,
+.star:focus-visible .starGlow,
+.starSelected .starGlow {
+    opacity: 0.5;
+}
+
+/* Star card */
+
+.card {
+    position: absolute;
+    top: 50%;
+    right: clamp(20px, 4vw, 56px);
+    transform: translateY(-50%) translateX(12px);
+    width: clamp(520px, 48vw, 720px);
+    max-width: calc(100% - clamp(40px, 8vw, 112px));
+    max-height: calc(100% - 48px);
+    /* flex so the inner column shrinks (instead of clipping) when the
+       card hits max-height — the note scrolls, the map keeps its size */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: #1e1e1e;
+    border: 1px solid #2c2c2c;
+    border-radius: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 4;
+}
+
+.cardOpen {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+    pointer-events: auto;
+}
+
+/* One card design for every star; visit aspirations only add the map
+   block below the note. column-reverse keeps the map DOM-first (so one
+   map instance survives prev/next touring) while it reads below the note.
+   When the total exceeds the card's max-height the note shrinks and
+   scrolls; the map keeps its size. */
+.cardInner {
+    position: relative;
+    display: flex;
+    flex-direction: column-reverse;
+    min-height: 0;
+}
+
+.cardMedia {
+    position: relative;
+    flex: 0 0 clamp(320px, 32vh, 420px);
+    min-width: 0;
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+    background-color: #121212;
+}
+
+.cardMediaPlace {
+    flex-basis: clamp(380px, 44vh, 540px);
+}
+
+/* width/height (not inset) because maplibre's stylesheet loads later and
+   overrides position on its container class */
+.placeMap {
+    width: 100%;
+    height: 100%;
+}
+
+.placeMapLoading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    color: #808080;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+}
+
+/* Keep the required attribution, but on-theme. The doubled selectors
+   out-specify maplibre's own compact-pill rules, which load later. */
+.cardMedia :global(.maplibregl-ctrl-attrib),
+.cardMedia :global(.maplibregl-ctrl-attrib.maplibregl-compact),
+.cardMedia :global(.maplibregl-ctrl-attrib.maplibregl-compact-show) {
+    background-color: rgba(30, 30, 30, 0.85);
+    color: #808080;
+}
+
+.cardMedia :global(.maplibregl-ctrl-attrib) a,
+.cardMedia :global(.maplibregl-ctrl-attrib.maplibregl-compact) a {
+    color: #b0b0b0;
+}
+
+.cardMedia :global(.maplibregl-ctrl-attrib-button) {
+    filter: invert(0.8);
+}
+
+.placeMarker {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    background: radial-gradient(
+        circle,
+        #ffffff 0%,
+        #ffffff 35%,
+        rgba(224, 224, 224, 0.4) 60%,
+        transparent 75%
+    );
+    box-shadow: 0 0 12px 2px rgba(224, 224, 224, 0.3);
+}
+
+.cardContent {
+    position: relative;
+    flex: 0 1 auto;
+    min-width: 0;
+    min-height: 0;
+    padding: 42px 52px 38px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #3a3a3a transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .cardContent {
+        animation: cardIn 0.35s ease;
+    }
+}
+
+/* Fade only — a translate here would overflow the scroll container and
+   flash its scrollbar; the card itself already slides in via transition. */
+@keyframes cardIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.cardClose {
+    position: absolute;
+    top: 18px;
+    right: 24px;
+    background: none;
+    border: none;
+    color: #808080;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.cardClose:hover {
+    color: #e0e0e0;
+}
+
+.cardKicker {
+    margin: 0 0 12px;
+    color: #808080;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+}
+
+.cardTitle {
+    margin: 0;
+    font-weight: lighter;
+    font-size: clamp(2rem, 2.4vw, 2.75rem);
+    line-height: 1.12;
+    text-wrap: balance;
+}
+
+.cardPlace {
+    margin: 10px 0 0;
+    color: #b0b0b0;
+    font-size: 0.95rem;
+}
+
+.cardCompleted {
+    margin: 12px 0 0;
+    color: #b0b0b0;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+}
+
+.cardNote {
+    max-width: 66ch;
+    margin: 26px 0 0;
+    font-family: var(--font-literata), serif;
+    font-size: 1.12rem;
+    line-height: 1.78;
+    color: #e0e0e0;
+    text-wrap: pretty;
+}
+
+.cardNote p {
+    margin: 0 0 12px;
+}
+
+.cardNote p:last-child {
+    margin-bottom: 0;
+}
+
+.cardNoteLink {
+    color: #ffffff;
+    text-decoration: underline;
+    text-decoration-color: #555555;
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.2s ease;
+}
+
+.cardNoteLink:hover {
+    text-decoration-color: #e0e0e0;
+}
+
+.cardImageLink {
+    display: block;
+    height: 100%;
+}
+
+.cardPostscript {
+    max-width: 66ch;
+    margin: 18px 0 0;
+    font-family: var(--font-literata), serif;
+    font-style: italic;
+    font-size: 0.98rem;
+    line-height: 1.68;
+    color: #b0b0b0;
+}
+
+.cardPostscript p {
+    margin: 0 0 8px;
+}
+
+.cardPostscript p:last-child {
+    margin-bottom: 0;
+}
+
+/* the postscript keeps its spoken-aside dash */
+.cardPostscript p:first-child::before {
+    content: '— ';
+}
+
+.cardNav {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 34px;
+}
+
+.cardNavButton {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid #3a3a3a;
+    background: none;
+    color: #b0b0b0;
+    font-size: 0.95rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.cardNavButton:hover {
+    color: #ffffff;
+    border-color: #808080;
+}
+
+.cardNavCount {
+    color: #808080;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+}
+
+@media screen and (max-width: 767px) {
+    /* Phones lean on free pan/pinch to explore, so the constellation index is
+       dropped to keep the sky uncluttered; the gesture hint stays to orient
+       first-timers. */
+    .index {
+        display: none;
+    }
+
+    /* The hint may not fit one line on a narrow phone — let it wrap, centred. */
+    .hint {
+        white-space: normal;
+        text-align: center;
+        max-width: calc(100% - 48px);
+    }
+
+    .card {
+        top: auto;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        width: auto;
+        max-width: none;
+        max-height: 45dvh;
+        border-radius: 12px 12px 0 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        transform: translateY(16px);
+    }
+
+    .cardOpen {
+        transform: translateY(0);
+    }
+
+    /* the sheet may grow taller when it carries the map */
+    .card:has(.cardMedia) {
+        max-height: 75dvh;
+    }
+
+    .card:has(.cardMediaPlace) {
+        max-height: 82dvh;
+    }
+
+    .cardMedia {
+        flex: 0 0 230px;
+        border-radius: 0;
+    }
+
+    .cardMediaPlace {
+        flex-basis: clamp(280px, 42dvh, 360px);
+    }
+}

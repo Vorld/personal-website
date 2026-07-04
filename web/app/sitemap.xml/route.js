@@ -47,6 +47,7 @@ export async function GET() {
     { path: 'blog', lastModified: new Date().toISOString(), priority: 0.8 },
     { path: 'photos', lastModified: '2024-01-01T00:00:00.000Z', priority: 0.7 }, // Updated lastModified
     { path: 'music', lastModified: '2024-01-02T00:00:00.000Z', priority: 0.7 }, // Updated lastModified
+    { path: 'map', lastModified: new Date().toISOString(), priority: 0.7 },
     // Add any other static pages here if needed in the future
     // e.g., { path: 'about', lastModified: new Date().toISOString(), priority: 0.5 },
   ];

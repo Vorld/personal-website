@@ -23,7 +23,7 @@ async function getPosts() {
 
 // Define metadata for this page
 export const metadata = {
-  title: 'Blog | Kulkarni Venugopal',
+  title: 'Blog',
 };
 
 // Revalidate data every 10 seconds

@@ -96,6 +96,9 @@ const HomePage = async () => {
                         <p>
                         Currently, I&apos;m pursuing Computer Science and liberal arts(ish) at the National University of Singapore while part of the NUS College programme (Class of &apos;28).
                         </p>
+                        <p>
+                            The rest of me, I&apos;ve tried to chart on <Link href="/map" className={styles.emailLink}>this map</Link>.
+                        </p>
                     </div>
                 </div>
             </div>
