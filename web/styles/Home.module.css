@@ -206,24 +206,29 @@
 
 @media only screen and (max-width: 767px) {
   .landing {
-    min-height: 100lvh; 
-    height: 100lvh;    
+    min-height: 100vh;
+    min-height: 100dvh; 
+    height: 100vh;
+    height: 100dvh;    
     box-sizing: border-box; /* Ensure padding/border don't add to height */
   }
 
   .para {
     letter-spacing: 0.005em;
     padding: 0% 10% 0% 10%;
-    min-height: 100lvh; 
-    height: 100lvh;     
+    min-height: 100vh;
+    min-height: 100dvh; 
+    height: 100vh;
+    height: 100dvh;     
     box-sizing: border-box; /* Ensure padding/border don't add to height */
   }
 
   .section1 {
     height: auto;
-    min-height: 100lvh;
+    min-height: 100vh;
+    min-height: 100dvh;
     justify-content: flex-start;
-    padding-block: clamp(3rem, 8lvh, 5rem);
+    padding-block: clamp(3rem, 8dvh, 5rem);
   }
   
   .socialIcons {
