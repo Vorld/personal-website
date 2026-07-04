@@ -218,6 +218,13 @@
     height: 100lvh;     
     box-sizing: border-box; /* Ensure padding/border don't add to height */
   }
+
+  .section1 {
+    height: auto;
+    min-height: 100lvh;
+    justify-content: flex-start;
+    padding-block: clamp(3rem, 8lvh, 5rem);
+  }
   
   .socialIcons {
     gap: 1rem;
@@ -245,8 +252,9 @@
   
   .authorText {
     width: 100%;
+    max-height: none;
+    overflow-y: visible;
     /* text-align and align-items removed for mobile, rely on parent's align-items:center */
     /* and its own justify-content: center if needed, though for column it might not be the primary effect */
   }
 }
-
