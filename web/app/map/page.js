@@ -2,7 +2,6 @@ import groq from 'groq';
 import client from '../../client';
 import Header from '../../components/Header';
 import StarChart from '../../components/StarChart/StarChart';
-import AspirationList from '../../components/AspirationList';
 
 // Fetch data at the server level
 async function getAspirations() {
@@ -48,11 +47,36 @@ export const revalidate = 10;
 const MapPage = async () => {
     const aspirations = await getAspirations();
 
+    // Invisible, server-rendered structured data so search engines can read the
+    // map's contents — the constellation itself is the only way to browse.
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'A map of the things I want to see, learn, make, and do',
+        url: 'https://www.venugopal.net/map',
+        numberOfItems: aspirations.length,
+        itemListElement: aspirations.map((aspiration, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            item: {
+                '@type': 'Thing',
+                name: aspiration.placeName
+                    ? `${aspiration.title} — ${aspiration.placeName}`
+                    : aspiration.title,
+                ...(aspiration.noteText ? { description: aspiration.noteText } : {}),
+                ...(aspiration.image?.url ? { image: aspiration.image.url } : {}),
+            },
+        })),
+    };
+
     return (
         <div>
             <Header heading={'MAP'} />
             <StarChart aspirations={aspirations} />
-            <AspirationList aspirations={aspirations} />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
         </div>
     );
 };
