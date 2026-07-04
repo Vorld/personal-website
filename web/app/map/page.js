@@ -1,7 +1,7 @@
 import groq from 'groq';
 import client from '../../client';
 import Header from '../../components/Header';
-import StarChart from '../../components/starchart/StarChart';
+import StarChart from '../../components/StarChart/StarChart';
 import AspirationList from '../../components/AspirationList';
 
 // Fetch data at the server level
@@ -30,10 +30,10 @@ async function getAspirations() {
     // A card image that also lives in the photo gallery links to that
     // photo's lightbox permalink (/photos?photo=<key>).
     const keyByRef = new Map((galleryImages || []).map((img) => [img.ref, img._key]));
-    return (aspirations || []).map((item) =>
-        item.image?.ref && keyByRef.has(item.image.ref)
-            ? { ...item, photoKey: keyByRef.get(item.image.ref) }
-            : item
+    return (aspirations || []).map((aspiration) =>
+        aspiration.image?.ref && keyByRef.has(aspiration.image.ref)
+            ? { ...aspiration, photoKey: keyByRef.get(aspiration.image.ref) }
+            : aspiration
     );
 }
 
@@ -51,8 +51,8 @@ const MapPage = async () => {
     return (
         <div>
             <Header heading={'MAP'} />
-            <StarChart items={aspirations} />
-            <AspirationList items={aspirations} />
+            <StarChart aspirations={aspirations} />
+            <AspirationList aspirations={aspirations} />
         </div>
     );
 };

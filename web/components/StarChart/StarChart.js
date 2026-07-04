@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { WORLD, computeLayout, computeDust, hashString } from './layout';
 import Constellation from './Constellation';
 import ConstellationIndex from './ConstellationIndex';
-import NotePanel from './NotePanel';
-import styles from '../../styles/MapOfMe.module.css';
+import StarCard from './StarCard';
+import styles from '../../styles/Map.module.css';
 
 // k = screen pixels per world unit
 const MAX_K = 1.75;
@@ -24,9 +24,9 @@ const OVERSCROLL = 260;
 const OVERVIEW_PADDING = 220;
 // Minimum zoom the camera glides to when a star is selected.
 const SELECT_MIN_K = 0.75;
-// Desktop note panel occupies the right edge; offset the camera centre so
+// Desktop star card occupies the right edge; offset the camera centre so
 // the selected star sits centred in the remaining space.
-const PANEL_CLEARANCE = 360;
+const CARD_CLEARANCE = 360;
 const MOBILE_BREAKPOINT = 767;
 
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
@@ -60,7 +60,7 @@ const renderDust = (d) => (
 // no React re-renders, and everything stays vector-crisp at any zoom (a CSS
 // transform on a big rasterised layer is what made the first prototype look
 // low-res).
-const StarChart = ({ items }) => {
+const StarChart = ({ aspirations }) => {
     const viewportRef = useRef(null);
     const svgRef = useRef(null);
     const dustLayerRefs = useRef({});
@@ -92,7 +92,7 @@ const StarChart = ({ items }) => {
 
     const dismissHint = useCallback(() => setHintDismissed(true), []);
 
-    const constellations = useMemo(() => computeLayout(items), [items]);
+    const constellations = useMemo(() => computeLayout(aspirations), [aspirations]);
     const dust = useMemo(() => computeDust(), []);
 
     // Overview framing: the constellation cluster (all six titles readable,
@@ -286,19 +286,19 @@ const StarChart = ({ items }) => {
         stopInertia();
     }, [stopTween, stopWheelZoom, stopInertia]);
 
-    // Selecting a star opens its note and glides the camera to frame the
-    // star next to the panel (desktop) or above the bottom sheet (mobile).
-    const selectStar = (item) => {
-        setSelected(item);
+    // Selecting a star opens its card and glides the camera to frame the
+    // star next to the card (desktop) or above the bottom sheet (mobile).
+    const selectStar = (aspiration) => {
+        setSelected(aspiration);
         for (const constellation of constellations) {
-            const star = constellation.stars.find((s) => s.item.id === item.id);
+            const star = constellation.stars.find((s) => s.aspiration.id === aspiration.id);
             if (!star) continue;
             const { width, height } = sizeRef.current;
             const k = Math.max(viewRef.current.k, SELECT_MIN_K);
             const isMobile = width <= MOBILE_BREAKPOINT;
             animateTo({
                 k,
-                cx: isMobile ? star.x : star.x + PANEL_CLEARANCE / k,
+                cx: isMobile ? star.x : star.x + CARD_CLEARANCE / k,
                 cy: isMobile ? star.y + (0.2 * height) / k : star.y,
             });
             return;
@@ -357,10 +357,10 @@ const StarChart = ({ items }) => {
     useEffect(() => {
         const id = new URLSearchParams(window.location.search).get('star');
         if (!id) return;
-        const item = items.find((i) => i.id === id);
-        if (!item) return;
+        const aspiration = aspirations.find((a) => a.id === id);
+        if (!aspiration) return;
         // After the initial view effect above has measured the viewport.
-        const raf = requestAnimationFrame(() => selectStar(item));
+        const raf = requestAnimationFrame(() => selectStar(aspiration));
         return () => cancelAnimationFrame(raf);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -472,12 +472,12 @@ const StarChart = ({ items }) => {
         const drifters = [];
         constellations.forEach((c) =>
             c.stars.forEach((s) => {
-                const el = svg.querySelector(`[data-star-id="${CSS.escape(s.item.id)}"]`);
+                const el = svg.querySelector(`[data-star-id="${CSS.escape(s.aspiration.id)}"]`);
                 if (!el) return;
-                const seed = hashString(s.item.id);
+                const seed = hashString(s.aspiration.id);
                 drifters.push({
                     el,
-                    id: s.item.id,
+                    id: s.aspiration.id,
                     // Screen pixels — divided by the live zoom each frame so
                     // the drift is equally perceptible at every zoom level
                     // (in fixed world units it shrank to a sub-pixel crawl
@@ -530,7 +530,7 @@ const StarChart = ({ items }) => {
         return () => cancelAnimationFrame(raf);
     }, [ready, constellations]);
 
-    // Escape closes the note panel.
+    // Escape closes the card.
     useEffect(() => {
         if (!selected) return undefined;
         const onKeyDown = (e) => {
@@ -606,7 +606,7 @@ const StarChart = ({ items }) => {
             suppressClickRef.current = false;
             return;
         }
-        // Click on empty sky (star clicks stop propagation) closes the panel.
+        // Click on empty sky (star clicks stop propagation) closes the card.
         setSelected(null);
     };
 
@@ -671,13 +671,13 @@ const StarChart = ({ items }) => {
                 onFocus={focusConstellation}
                 onReset={resetView}
             />
-            <NotePanel
-                item={selected}
-                groupItems={
+            <StarCard
+                aspiration={selected}
+                siblings={
                     selected
                         ? constellations
                               .find((c) => c.key === selected.category)
-                              ?.stars.map((s) => s.item)
+                              ?.stars.map((s) => s.aspiration)
                         : null
                 }
                 onSelect={selectStar}

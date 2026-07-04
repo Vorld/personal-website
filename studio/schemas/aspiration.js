@@ -1,5 +1,3 @@
-const hasCoordinate = (value) => typeof value === 'number' && Number.isFinite(value);
-
 export default {
     name: 'aspiration',
     title: 'Aspiration',
@@ -85,18 +83,13 @@ export default {
                     validation: (Rule) => Rule.required().min(-180).max(180),
                 },
             ],
-            // Visit stars open a card with the place on a map, so the
-            // coordinates are not optional for them.
+            // Visit stars open a card with the place on a map, so a visit
+            // must carry a location; the lat/lng fields above enforce the
+            // coordinates themselves.
             validation: (Rule) =>
                 Rule.custom((location, context) => {
                     if (context.document?.category === 'visit' && !location) {
                         return 'Visit aspirations need a location for the place map.';
-                    }
-                    if (
-                        context.document?.category === 'visit' &&
-                        (!hasCoordinate(location?.lat) || !hasCoordinate(location?.lng))
-                    ) {
-                        return 'Visit aspirations need both latitude and longitude.';
                     }
                     return true;
                 }),

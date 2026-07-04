@@ -41,9 +41,10 @@
 
 .index {
     position: absolute;
-    left: 24px;
-    /* clear the Navbar's round logo button in the bottom-left corner */
-    bottom: 90px;
+    /* Rest in the bottom-left corner with a matched inset from both edges,
+       so it reads as intentionally placed rather than floating mid-air. */
+    left: 40px;
+    bottom: 40px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -194,9 +195,9 @@
     opacity: 0.5;
 }
 
-/* Note panel */
+/* Star card */
 
-.notePanel {
+.card {
     position: absolute;
     top: 50%;
     right: clamp(20px, 4vw, 56px);
@@ -218,25 +219,25 @@
     z-index: 4;
 }
 
-.notePanelOpen {
+.cardOpen {
     opacity: 1;
     transform: translateY(-50%) translateX(0);
     pointer-events: auto;
 }
 
-/* One card design for every star; visit items only add the map block
-   below the note. column-reverse keeps the map DOM-first (so one map
-   instance survives prev/next touring) while it reads below the note.
-   When the total exceeds the panel's max-height the note shrinks and
+/* One card design for every star; visit aspirations only add the map
+   block below the note. column-reverse keeps the map DOM-first (so one
+   map instance survives prev/next touring) while it reads below the note.
+   When the total exceeds the card's max-height the note shrinks and
    scrolls; the map keeps its size. */
-.notePanelInner {
+.cardInner {
     position: relative;
     display: flex;
     flex-direction: column-reverse;
     min-height: 0;
 }
 
-.noteMap {
+.cardMedia {
     position: relative;
     flex: 0 0 clamp(320px, 32vh, 420px);
     min-width: 0;
@@ -245,18 +246,18 @@
     background-color: #121212;
 }
 
-.noteGeoMap {
+.cardMediaPlace {
     flex-basis: clamp(380px, 44vh, 540px);
 }
 
 /* width/height (not inset) because maplibre's stylesheet loads later and
    overrides position on its container class */
-.geoMap {
+.placeMap {
     width: 100%;
     height: 100%;
 }
 
-.geoLoading {
+.placeMapLoading {
     position: absolute;
     inset: 0;
     display: flex;
@@ -270,23 +271,23 @@
 
 /* Keep the required attribution, but on-theme. The doubled selectors
    out-specify maplibre's own compact-pill rules, which load later. */
-.noteMap :global(.maplibregl-ctrl-attrib),
-.noteMap :global(.maplibregl-ctrl-attrib.maplibregl-compact),
-.noteMap :global(.maplibregl-ctrl-attrib.maplibregl-compact-show) {
+.cardMedia :global(.maplibregl-ctrl-attrib),
+.cardMedia :global(.maplibregl-ctrl-attrib.maplibregl-compact),
+.cardMedia :global(.maplibregl-ctrl-attrib.maplibregl-compact-show) {
     background-color: rgba(30, 30, 30, 0.85);
     color: #808080;
 }
 
-.noteMap :global(.maplibregl-ctrl-attrib) a,
-.noteMap :global(.maplibregl-ctrl-attrib.maplibregl-compact) a {
+.cardMedia :global(.maplibregl-ctrl-attrib) a,
+.cardMedia :global(.maplibregl-ctrl-attrib.maplibregl-compact) a {
     color: #b0b0b0;
 }
 
-.noteMap :global(.maplibregl-ctrl-attrib-button) {
+.cardMedia :global(.maplibregl-ctrl-attrib-button) {
     filter: invert(0.8);
 }
 
-.geoMarker {
+.placeMarker {
     width: 16px;
     height: 16px;
     padding: 0;
@@ -303,7 +304,7 @@
     box-shadow: 0 0 12px 2px rgba(224, 224, 224, 0.3);
 }
 
-.noteContent {
+.cardContent {
     position: relative;
     flex: 0 1 auto;
     min-width: 0;
@@ -315,14 +316,14 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    .noteContent {
-        animation: noteIn 0.35s ease;
+    .cardContent {
+        animation: cardIn 0.35s ease;
     }
 }
 
 /* Fade only — a translate here would overflow the scroll container and
-   flash its scrollbar; the panel itself already slides in via transition. */
-@keyframes noteIn {
+   flash its scrollbar; the card itself already slides in via transition. */
+@keyframes cardIn {
     from {
         opacity: 0;
     }
@@ -331,7 +332,7 @@
     }
 }
 
-.noteClose {
+.cardClose {
     position: absolute;
     top: 18px;
     right: 24px;
@@ -344,11 +345,11 @@
     padding: 4px;
 }
 
-.noteClose:hover {
+.cardClose:hover {
     color: #e0e0e0;
 }
 
-.noteKicker {
+.cardKicker {
     margin: 0 0 12px;
     color: #808080;
     font-size: 0.7rem;
@@ -356,7 +357,7 @@
     letter-spacing: 0.3em;
 }
 
-.noteTitle {
+.cardTitle {
     margin: 0;
     font-weight: lighter;
     font-size: clamp(2rem, 2.4vw, 2.75rem);
@@ -364,20 +365,20 @@
     text-wrap: balance;
 }
 
-.notePlace {
+.cardPlace {
     margin: 10px 0 0;
     color: #b0b0b0;
     font-size: 0.95rem;
 }
 
-.noteCompleted {
+.cardCompleted {
     margin: 12px 0 0;
     color: #b0b0b0;
     font-size: 0.85rem;
     letter-spacing: 0.04em;
 }
 
-.noteBody {
+.cardNote {
     max-width: 66ch;
     margin: 26px 0 0;
     font-family: var(--font-literata), serif;
@@ -387,15 +388,15 @@
     text-wrap: pretty;
 }
 
-.noteBody p {
+.cardNote p {
     margin: 0 0 12px;
 }
 
-.noteBody p:last-child {
+.cardNote p:last-child {
     margin-bottom: 0;
 }
 
-.noteLink {
+.cardNoteLink {
     color: #ffffff;
     text-decoration: underline;
     text-decoration-color: #555555;
@@ -403,16 +404,16 @@
     transition: text-decoration-color 0.2s ease;
 }
 
-.noteLink:hover {
+.cardNoteLink:hover {
     text-decoration-color: #e0e0e0;
 }
 
-.noteImageLink {
+.cardImageLink {
     display: block;
     height: 100%;
 }
 
-.notePostscript {
+.cardPostscript {
     max-width: 66ch;
     margin: 18px 0 0;
     font-family: var(--font-literata), serif;
@@ -422,27 +423,27 @@
     color: #b0b0b0;
 }
 
-.notePostscript p {
+.cardPostscript p {
     margin: 0 0 8px;
 }
 
-.notePostscript p:last-child {
+.cardPostscript p:last-child {
     margin-bottom: 0;
 }
 
 /* the postscript keeps its spoken-aside dash */
-.notePostscript p:first-child::before {
+.cardPostscript p:first-child::before {
     content: '— ';
 }
 
-.noteNav {
+.cardNav {
     display: flex;
     align-items: center;
     gap: 18px;
     margin-top: 34px;
 }
 
-.noteNavButton {
+.cardNavButton {
     width: 34px;
     height: 34px;
     border-radius: 50%;
@@ -455,12 +456,12 @@
     transition: color 0.2s ease, border-color 0.2s ease;
 }
 
-.noteNavButton:hover {
+.cardNavButton:hover {
     color: #ffffff;
     border-color: #808080;
 }
 
-.noteNavCount {
+.cardNavCount {
     color: #808080;
     font-size: 0.75rem;
     letter-spacing: 0.2em;
@@ -518,7 +519,13 @@
 }
 
 @media screen and (max-width: 767px) {
-    .notePanel {
+    /* Tighter corner inset on narrow screens; bottom aligns with the hint. */
+    .index {
+        left: 24px;
+        bottom: 28px;
+    }
+
+    .card {
         top: auto;
         right: 0;
         left: 0;
@@ -533,25 +540,25 @@
         transform: translateY(16px);
     }
 
-    .notePanelOpen {
+    .cardOpen {
         transform: translateY(0);
     }
 
     /* the sheet may grow taller when it carries the map */
-    .notePanel:has(.noteMap) {
+    .card:has(.cardMedia) {
         max-height: 75dvh;
     }
 
-    .notePanel:has(.noteGeoMap) {
+    .card:has(.cardMediaPlace) {
         max-height: 82dvh;
     }
 
-    .noteMap {
+    .cardMedia {
         flex: 0 0 230px;
         border-radius: 0;
     }
 
-    .noteGeoMap {
+    .cardMediaPlace {
         flex-basis: clamp(280px, 42dvh, 360px);
     }
 }

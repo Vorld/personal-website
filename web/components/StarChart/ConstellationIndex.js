@@ -1,5 +1,5 @@
 import { CATEGORIES } from './layout';
-import styles from '../../styles/MapOfMe.module.css';
+import styles from '../../styles/Map.module.css';
 
 // Fixed legend: orientation + quick navigation between constellations.
 const ConstellationIndex = ({ focused, onFocus, onReset }) => {

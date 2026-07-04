@@ -1,5 +1,5 @@
 import Star from './Star';
-import styles from '../../styles/MapOfMe.module.css';
+import styles from '../../styles/Map.module.css';
 
 const Constellation = ({ constellation, selectedId, onSelectStar }) => {
     const { label, anchor, stars, edges } = constellation;
@@ -14,8 +14,8 @@ const Constellation = ({ constellation, selectedId, onSelectStar }) => {
                     y1={stars[i].y}
                     x2={stars[j].x}
                     y2={stars[j].y}
-                    data-edge-a={stars[i].item.id}
-                    data-edge-b={stars[j].item.id}
+                    data-edge-a={stars[i].aspiration.id}
+                    data-edge-b={stars[j].aspiration.id}
                     vectorEffect="non-scaling-stroke"
                     aria-hidden="true"
                 />
@@ -32,9 +32,9 @@ const Constellation = ({ constellation, selectedId, onSelectStar }) => {
             </text>
             {stars.map((star) => (
                 <Star
-                    key={star.item.id}
+                    key={star.aspiration.id}
                     star={star}
-                    selected={star.item.id === selectedId}
+                    selected={star.aspiration.id === selectedId}
                     onSelect={onSelectStar}
                 />
             ))}

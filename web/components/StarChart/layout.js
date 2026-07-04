@@ -110,9 +110,9 @@ function sequentialEdges(stars) {
     return edges;
 }
 
-export function computeLayout(items) {
+export function computeLayout(aspirations) {
     return CATEGORIES.map((cat) => {
-        let group = items.filter((item) => item.category === cat.key);
+        let group = aspirations.filter((aspiration) => aspiration.category === cat.key);
         if (cat.key === 'consume') {
             group = [...group].sort((a, b) =>
                 `${a.subcategory || ''}${a.id}`.localeCompare(`${b.subcategory || ''}${b.id}`)
@@ -121,16 +121,16 @@ export function computeLayout(items) {
             group = [...group].sort((a, b) => a.id.localeCompare(b.id));
         }
 
-        const stars = group.map((item) => {
-            const rand = mulberry32(hashString(item.id));
+        const stars = group.map((aspiration) => {
+            const rand = mulberry32(hashString(aspiration.id));
             const angle = rand() * Math.PI * 2;
             const dist = 70 + rand() * 180;
             return {
-                item,
+                aspiration,
                 x: cat.anchor.x + Math.cos(angle) * dist,
                 y: cat.anchor.y + Math.sin(angle) * dist,
                 // Star size reflects how much the wish is wanted.
-                r: 2 + (item.desire || 1) * 1.5,
+                r: 2 + aspiration.desire * 1.5,
             };
         });
         relax(stars);
@@ -172,9 +172,5 @@ export function computeDust() {
         deep: layer('deep', 400, 0.4, 0.5, 0.3, 0.1),
         mid: layer('mid', 200, 0.6, 0.6, 0.4, 0.12),
         close: layer('close', 100, 0.8, 0.9, 0.55, 0.14),
-
-        // deep: layer('deep', 600, 0.4, 0.5, 0.06, 0.1),
-        // mid: layer('mid', 300, 0.6, 0.6, 0.1, 0.12),
-        // close: layer('close', 100, 0.8, 0.9, 0.14, 0.14),
     };
 }
