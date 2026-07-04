@@ -2,7 +2,7 @@ import Header from '../../components/Header';
 
 // Define metadata for this page
 export const metadata = {
-  title: 'Music | Kulkarni Venugopal',
+  title: 'Music',
 };
 
 // Music Page Component (Server Component)

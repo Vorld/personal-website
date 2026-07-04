@@ -19,7 +19,7 @@ async function getImages() {
 
 // Define metadata for this page
 export const metadata = {
-  title: 'Photos | Kulkarni Venugopal',
+  title: 'Photos',
 };
 
 // Revalidate data every 10 seconds
